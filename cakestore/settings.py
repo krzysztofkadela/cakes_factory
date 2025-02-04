@@ -65,7 +65,7 @@ ROOT_URLCONF = 'cakestore.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -89,6 +89,26 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SITE_ID = 1
+
+# Email Backend (For Development - Change for Production)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Authentication Settings
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow both username and email for login
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Users must verify email before login
+ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = True  # Require email confirmation during signup
+ACCOUNT_USERNAME_MIN_LENGTH = 4
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+
+# Email Confirmation Settings
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Confirmation link expires after 3 days
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[My Cake Store] "  # Customize email subject
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"  # Set to "https" in production
+
+# Disable immediate login after signup (forces email verification)
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 
 WSGI_APPLICATION = 'cakestore.wsgi.application'
 
