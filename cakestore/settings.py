@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'products',  # Cake & cupcake management
     'orders',    # Order & payment handling
     'users',     # User authentication
+    'home',
 ]
 
 MIDDLEWARE = [
@@ -101,6 +102,9 @@ ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = True  # Require email confirmation during sig
 ACCOUNT_USERNAME_MIN_LENGTH = 4
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
+
+LOGIN_REDIRECT_URL = "/" # Redirect to main page
+LOGOUT_REDIRECT_URL = "/"# Redirect to main page
 
 # Email Confirmation Settings
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Confirmation link expires after 3 days
@@ -159,6 +163,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Static files in the project directory
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
