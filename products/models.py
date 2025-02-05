@@ -1,32 +1,41 @@
 from django.db import models
+from django.utils.text import slugify
 
 # Create your models here.
 
 class Product(models.Model):
-    CATEGORY_CHOICES = [
-        ('birthday', 'Birthday Cakes'),
-        ('wedding', 'Wedding Cakes'),
-        ('cupcake', 'Cupcakes'),
-        ('custom', 'Custom Orders'),
-    ]
+    class CategoryChoices(models.TextChoices):
+        BIRTHDAY = "birthday", "Birthday Cakes"
+        WEDDING = "wedding", "Wedding Cakes"
+        CUPCAKE = "cupcake", "Cupcakes"
+        CUSTOM = "custom", "Custom Orders"
 
-    FLAVOR_CHOICES = [
-        ('chocolate', 'Chocolate'),
-        ('vanilla', 'Vanilla'),
-        ('red_velvet', 'Red Velvet'),
-        ('lemon', 'Lemon'),
-    ]
+    class FlavorChoices(models.TextChoices):
+        CHOCOLATE = "chocolate", "Chocolate"
+        VANILLA = "vanilla", "Vanilla"
+        RED_VELVET = "red_velvet", "Red Velvet"
+        LEMON = "lemon", "Lemon"
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    flavor = models.CharField(max_length=20, choices=FLAVOR_CHOICES, blank=True)
-    image = models.ImageField(upload_to='product_images/', blank=True, null=True)
-    available_dates = models.JSONField(default=list, help_text="Available delivery/pickup dates")
+    category = models.CharField(
+        max_length=20, choices=CategoryChoices.choices, default=CategoryChoices.BIRTHDAY
+    )
+    flavor = models.CharField(
+        max_length=20, choices=FlavorChoices.choices, blank=True
+    )
+    image = models.ImageField(upload_to="product_images/", blank=True, null=True)
     allergen_info = models.TextField(blank=True, help_text="E.g., Contains nuts, gluten-free")
     available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        """Auto-generate slug from name"""
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

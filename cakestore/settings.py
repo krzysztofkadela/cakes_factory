@@ -61,6 +61,9 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 ROOT_URLCONF = 'cakestore.urls'
 
 TEMPLATES = [
