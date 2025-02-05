@@ -70,28 +70,6 @@
     </div>
 </nav>
 
-<!-- Category Navigation -->
-<div class="container mt-3">
-    <div class="mb-3">
-        <a href="{% url 'product_list' %}" class="btn btn-secondary">All</a>
-        <a href="?category=birthday" class="btn btn-primary">Birthday Cakes</a>
-        <a href="?category=wedding" class="btn btn-primary">Wedding Cakes</a>
-        <a href="?category=cupcake" class="btn btn-primary">Cupcakes</a>
-    </div>
-
-    <!-- Search & Filters -->
-    <form method="GET" action="{% url 'filter_products' %}" class="mb-3 d-flex gap-2">
-        <input type="text" name="q" placeholder="Search cakes..." class="form-control w-25">
-        <input type="number" name="price_min" placeholder="Min Price" class="form-control w-25">
-        <input type="number" name="price_max" placeholder="Max Price" class="form-control w-25">
-        <div class="form-check align-self-center">
-            <input type="checkbox" class="form-check-input" id="allergenFree" name="allergen_free">
-            <label class="form-check-label" for="allergenFree">Allergen-Free</label>
-        </div>
-        <button type="submit" class="btn btn-dark">Apply Filters</button>
-    </form>
-</div>
-
     <!-- Header -->
     <header class="bg-dark py-5">
         <div class="container px-4 px-lg-5 my-5">
