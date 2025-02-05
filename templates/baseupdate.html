@@ -23,48 +23,27 @@
 <!-- Navigation -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container px-4 px-lg-5">
+        <!-- Brand/Logo -->
         <a class="navbar-brand" href="{% url 'home' %}">Cake Factory</a>
+        
+        <!-- Navbar Toggler for Mobile -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" 
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <!-- Left Side: Navigation Links -->
+            <!-- Left Navigation Links -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                 <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-                
-                <!-- New Dropdown for Categories & Filters -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown">
-                        Categories & Filters
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                        <!-- Category Navigation -->
-                        <li><a class="dropdown-item" href="{% url 'product_list' %}">All Products</a></li>
-                        <li><a class="dropdown-item" href="?category=birthday">Birthday Cakes</a></li>
-                        <li><a class="dropdown-item" href="?category=wedding">Wedding Cakes</a></li>
-                        <li><a class="dropdown-item" href="?category=cupcake">Cupcakes</a></li>
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">All Products</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        
-                        <!-- Search & Filters -->
-                        <li>
-                            <form method="GET" action="{% url 'filter_products' %}" class="px-3">
-                                <div class="input-group mb-2">
-                                    <input type="text" name="q" placeholder="Search cakes..." class="form-control">
-                                </div>
-                                <div class="input-group mb-2">
-                                    <input type="number" name="price_min" placeholder="Min Price" class="form-control">
-                                    <input type="number" name="price_max" placeholder="Max Price" class="form-control">
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input type="checkbox" class="form-check-input" id="allergenFree" name="allergen_free">
-                                    <label class="form-check-label" for="allergenFree">Allergen-Free</label>
-                                </div>
-                                <button type="submit" class="btn btn-dark w-100">Apply Filters</button>
-                            </form>
-                        </li>
+                        <li><a class="dropdown-item" href="#">Popular Items</a></li>
+                        <li><a class="dropdown-item" href="#">New Arrivals</a></li>
                     </ul>
                 </li>
             </ul>
@@ -72,13 +51,15 @@
             <!-- Right Side: Login/Logout & Cart -->
             <div class="d-flex align-items-center">
                 {% if user.is_authenticated %}
+                    <!-- Show username & logout if logged in -->
                     <span class="me-2">👋 {{ user.username }}</span>
                     <a class="btn btn-outline-danger me-3" href="{% url 'account_logout' %}">Logout</a>
                 {% else %}
+                    <!-- Show login & signup if not logged in -->
                     <a class="btn btn-outline-primary me-2" href="{% url 'account_login' %}">Sign In</a>
                     <a class="btn btn-primary me-3" href="{% url 'account_signup' %}">Sign Up</a>
                 {% endif %}
-
+            
                 <!-- Cart Button -->
                 <a class="btn btn-outline-dark" href="">
                     <i class="bi-cart-fill me-1"></i> Cart
@@ -88,7 +69,6 @@
         </div>
     </div>
 </nav>
-
 
     <!-- Header -->
     <header class="bg-dark py-5">
