@@ -3,5 +3,17 @@
 * Copyright 2013-2023 Start Bootstrap
 * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
 */
-// This file is intentionally blank
-// Use this file to add JavaScript to your project
+
+// close messages after 5s automatic...
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Auto-dismiss messages after 5 seconds
+    setTimeout(function() {
+      let alerts = document.querySelectorAll('.alert');
+      alerts.forEach((alert) => {
+        let bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+      });
+    }, 5000); // 5 seconds
+  });
