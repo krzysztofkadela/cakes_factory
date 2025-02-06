@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'crispy_forms',
+    'crispy_bootstrap5',
     # The following apps are required:
     'allauth',
     'allauth.account',
@@ -67,6 +69,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 ROOT_URLCONF = 'cakestore.urls'
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -82,6 +87,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 AUTHENTICATION_BACKENDS = [
     
