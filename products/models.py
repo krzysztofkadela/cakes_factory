@@ -3,6 +3,19 @@ from django.utils.text import slugify
 
 # Create your models here.
 
+class Size(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
@@ -33,7 +46,6 @@ class Product(models.Model):
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
-    # Replace old TextChoices with references:
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         null=True, blank=True, related_name="products"
@@ -42,17 +54,20 @@ class Product(models.Model):
         Flavor, on_delete=models.SET_NULL,
         null=True, blank=True, related_name="products"
     )
+    # New ManyToMany for Sizes
+    sizes = models.ManyToManyField(
+        Size, blank=True, related_name="products"
+    )
 
     image = models.ImageField(upload_to="product_images/", blank=True, null=True)
-    allergen_info = models.TextField(
-        blank=True, help_text="E.g., Contains nuts, gluten-free"
-    )
+    allergen_info = models.TextField(blank=True, help_text="E.g., Contains nuts, gluten-free")
     available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
         """Auto-generate slug from name"""
         if not self.slug:
+            from django.utils.text import slugify
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 

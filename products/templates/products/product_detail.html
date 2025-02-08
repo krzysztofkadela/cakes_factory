@@ -25,18 +25,31 @@
 
         <!-- Flavor Display (handles if product.flavor is None) -->
         {% if product.flavor %}
-        <p><strong>Flavor:</strong> {{ product.flavor.name }}</p>
+            <p><strong>Flavor:</strong> {{ product.flavor.name }}</p>
+        {% endif %}
+
+        <!-- Sizes Display (handles if no sizes exist) -->
+        {% if product.sizes.all %}
+            {% if product.sizes.count %}
+                <p><strong>Available Sizes:</strong>
+                    {% for size in product.sizes.all %}
+                        {{ size.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+            {% else %}
+                <p><strong>Available Sizes:</strong> None</p>
+            {% endif %}
         {% endif %}
 
         <!-- Allergen Info -->
         {% if product.allergen_info %}
-        <p><strong>Allergen Info:</strong> {{ product.allergen_info }}</p>
+            <p><strong>Allergen Info:</strong> {{ product.allergen_info }}</p>
         {% endif %}
 
         <h4 class="mt-4">Price: ${{ product.price }}</h4>
 
         <!-- Add to Cart Form (commented out until cart is ready) -->
-        {# 
+        {#
         <form method="POST" action="{% url 'cart_add' product.pk %}">
             {% csrf_token %}
             <div class="d-flex align-items-center mb-3">

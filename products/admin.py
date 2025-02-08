@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Category, Flavor, Review
+from .models import Category, Flavor, Size, Product, Review
 
 # Register your models here.
 
@@ -9,6 +9,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Flavor)
 class FlavorAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug")
+
+@admin.register(Size)
+class SizeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
 
 @admin.register(Product)
