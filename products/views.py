@@ -43,3 +43,4 @@ def filter_products(request):
         products = products.exclude(allergen_info__icontains="nuts")
 
     return render(request, 'products/product_list.html', {'products': products})
+
