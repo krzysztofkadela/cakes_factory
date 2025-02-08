@@ -1,20 +1,18 @@
 from django.db import models
 from django.utils.text import slugify
 
-# Create your models here.
-
 class Size(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            from django.utils.text import slugify
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -27,7 +25,8 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+
 class Flavor(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
@@ -39,6 +38,7 @@ class Flavor(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Product(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -54,7 +54,6 @@ class Product(models.Model):
         Flavor, on_delete=models.SET_NULL,
         null=True, blank=True, related_name="products"
     )
-    # New ManyToMany for Sizes
     sizes = models.ManyToManyField(
         Size, blank=True, related_name="products"
     )
@@ -65,18 +64,16 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        """Auto-generate slug from name"""
         if not self.slug:
-            from django.utils.text import slugify
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
-    
-    # Review model for customer review and rating
+
 
 class Review(models.Model):
+    """Customer review and rating for a product."""
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
     user = models.CharField(max_length=100)
     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # 1-5 stars
@@ -84,4 +81,4 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user} - {self.product.name} ({self.rating}/5)"  
+        return f"{self.user} - {self.product.name} ({self.rating}/5)"
