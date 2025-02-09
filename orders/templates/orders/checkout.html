@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Checkout - Cake Factory{% endblock %}
+{% block content %}
+<h2>Checkout</h2>
+
+{% if cart %}
+    <form method="POST">
+        {% csrf_token %}
+        <p>Please confirm your order before proceeding.</p>
+        <ul>
+            {% for product_id, item in cart.items %}
+            <li>{{ item.quantity }}x {{ item.name }} ({{ item.size|default:"-" }}) - ${{ item.price }}</li>
+            {% endfor %}
+        </ul>
+        <h4>Total: ${{ total_price|floatformat:2 }}</h4>
+        <button type="submit" class="btn btn-primary">Place Order</button>
+    </form>
+{% else %}
+    <p>Your cart is empty!</p>
+{% endif %}
+{% endblock %}

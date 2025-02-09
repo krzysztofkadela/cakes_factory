@@ -14,7 +14,7 @@
     <div class="col-md-6 mb-3">
         <h2>{{ product.name }}</h2>
 
-        <!-- Category Display (handles if product.category is None) -->
+        <!-- Category Display -->
         {% if product.category %}
             <p class="text-muted">{{ product.category.name }}</p>
         {% else %}
@@ -23,22 +23,18 @@
 
         <p>{{ product.description }}</p>
 
-        <!-- Flavor Display (handles if product.flavor is None) -->
+        <!-- Flavor Display -->
         {% if product.flavor %}
             <p><strong>Flavor:</strong> {{ product.flavor.name }}</p>
         {% endif %}
 
-        <!-- Sizes Display (handles if no sizes exist) -->
+        <!-- Sizes Display -->
         {% if product.sizes.all %}
-            {% if product.sizes.count %}
-                <p><strong>Available Sizes:</strong>
-                    {% for size in product.sizes.all %}
-                        {{ size.name }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-            {% else %}
-                <p><strong>Available Sizes:</strong> None</p>
-            {% endif %}
+            <p><strong>Available Sizes:</strong>
+                {% for size in product.sizes.all %}
+                    {{ size.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
         {% endif %}
 
         <!-- Allergen Info -->
@@ -48,9 +44,22 @@
 
         <h4 class="mt-4">Price: ${{ product.price }}</h4>
 
-        <!-- Add to Cart Form (commented out until cart is ready) -->
-    
-        
+        <!-- Add to Cart Form -->
+        <form method="POST" action="{% url 'cart_add' product.id %}">
+            {% csrf_token %}
+            <div class="d-flex align-items-center mb-3">
+                <label for="quantity" class="me-2 mb-0">Quantity:</label>
+                <input type="number" name="quantity" id="quantity" value="1" min="1" class="form-control w-auto">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-cart-plus me-1"></i> Add to Cart
+            </button>
+        </form>
+
+        <!-- Back to Products Button -->
+        <a href="{% url 'product_list' %}" class="btn btn-secondary mt-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to All Products
+        </a>
     </div>
 </div>
 {% endblock %}

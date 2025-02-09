@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} - Cake Factory{% endblock %}
+{% block header %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mb-3">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/600x400?text=No+Image" class="img-fluid" alt="No Image">
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <h2>{{ product.name }}</h2>
+
+        <!-- Category Display -->
+        {% if product.category %}
+            <p class="text-muted">{{ product.category.name }}</p>
+        {% else %}
+            <p class="text-muted">No Category</p>
+        {% endif %}
+
+        <p>{{ product.description }}</p>
+
+        <!-- Flavor Display -->
+        {% if product.flavor %}
+            <p><strong>Flavor:</strong> {{ product.flavor.name }}</p>
+        {% endif %}
+
+        <!-- Sizes Display -->
+        {% if product.sizes.all %}
+            <p><strong>Available Sizes:</strong>
+                {% for size in product.sizes.all %}
+                    {{ size.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        {% else %}
+            <p><strong>Available Sizes:</strong> None</p>
+        {% endif %}
+
+        <!-- Allergen Info -->
+        {% if product.allergen_info %}
+            <p><strong>Allergen Info:</strong> {{ product.allergen_info }}</p>
+        {% endif %}
+
+        <h4 class="mt-4">Price: ${{ product.price }}</h4>
+
+        <!-- Request Customization Form -->
+        <form method="POST" action="{% url 'custom_order' product.id %}">
+            {% csrf_token %}
+
+            <!-- Size Selection -->
+            {% if product.sizes.all %}
+                <div class="mb-3">
+                    <label for="size">Choose a size:</label>
+                    <select name="size" class="form-control">
+                        {% for size in product.sizes.all %}
+                            <option value="{{ size.name }}">{{ size.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+
+            <!-- Customization Request -->
+            <div class="mb-3">
+                <label for="custom_message">Customization Request:</label>
+                <textarea name="custom_message" class="form-control" rows="3" placeholder="E.g., 'Happy Birthday Emma!'"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Request Customization
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

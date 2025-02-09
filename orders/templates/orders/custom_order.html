@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Customize {{ product.name }}{% endblock %}
+
+{% block content %}
+<h2>Customize Your {{ product.name }}</h2>
+<p>Enter any special instructions for your order (e.g., "Write 'Happy Birthday Emma!' on top of the cake").</p>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Add Custom Order to Cart</button>
+</form>
+
+<a href="{% url 'product_detail' product.id %}" class="btn btn-secondary mt-3">Back to Product</a>
+{% endblock %}
