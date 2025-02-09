@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView
-from .models import Product, Review
+from .models import Product, Category
 
-class ProductListView(ListView):
+class ProductListViewold(ListView):
     model = Product
     template_name = 'products/product_list.html'
     context_object_name = 'products'
@@ -15,6 +15,56 @@ class ProductListView(ListView):
             # Filter by category__slug, not category__id
             queryset = queryset.filter(category__slug=category_slug)
         return queryset
+    
+class ProductListView(ListView):
+    model = Product
+    template_name = 'products/product_list.html'
+    context_object_name = 'products'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Get filters from URL parameters
+        query = self.request.GET.get('q', '').strip()
+        price_min = self.request.GET.get('price_min')
+        price_max = self.request.GET.get('price_max')
+        category_slug = self.request.GET.get('category', '').strip()  # Get category slug
+        allergen_free = self.request.GET.get('allergen_free')
+
+        # Apply search filter
+        if query:
+            queryset = queryset.filter(name__icontains=query)
+
+        # Apply price filters
+        if price_min:
+            try:
+                queryset = queryset.filter(price__gte=float(price_min))
+            except ValueError:
+                pass  # Ignore invalid values
+
+        if price_max:
+            try:
+                queryset = queryset.filter(price__lte=float(price_max))
+            except ValueError:
+                pass  # Ignore invalid values
+
+        # Apply category filter
+        if category_slug:
+            category = Category.objects.filter(slug=category_slug).first()
+            if category:
+                queryset = queryset.filter(category=category)
+
+        # Apply allergen-free filter
+        if allergen_free:
+            queryset = queryset.exclude(allergen_info__icontains="nuts")
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        """Include all categories in the context for the dropdown menu."""
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # Provide categories to template
+        return context
 
 
 class ProductDetailView(DetailView):

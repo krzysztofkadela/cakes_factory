@@ -35,22 +35,26 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">About</a></li>
                 
-                <!-- New Dropdown for Categories & Filters -->
+                <!-- Dropdown for Categories & Filters -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown">
                         Categories & Filters
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                        <!-- Category Navigation -->
+                        <!-- Dynamic Category Navigation -->
                         <li><a class="dropdown-item" href="{% url 'product_list' %}">All Products</a></li>
-                        <li><a class="dropdown-item" href="?category=birthday">Birthday Cakes</a></li>
-                        <li><a class="dropdown-item" href="?category=wedding">Wedding Cakes</a></li>
-                        <li><a class="dropdown-item" href="?category=cupcake">Cupcakes</a></li>
+                        {% for category in categories %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'product_list' %}?category={{ category.slug }}">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
                         <li><hr class="dropdown-divider"></li>
-                        
+                
                         <!-- Search & Filters -->
                         <li>
-                            <form method="GET" action="{% url 'filter_products' %}" class="px-3">
+                            <form method="GET" action="{% url 'product_list' %}" class="px-3">
                                 <div class="input-group mb-2">
                                     <input type="text" name="q" placeholder="Search cakes..." class="form-control">
                                 </div>
