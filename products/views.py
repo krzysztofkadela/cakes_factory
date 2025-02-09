@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView
 from .models import Product, Category
@@ -30,6 +31,10 @@ class ProductListView(ListView):
         price_max = self.request.GET.get('price_max')
         category_slug = self.request.GET.get('category', '').strip()  # Get category slug
         allergen_free = self.request.GET.get('allergen_free')
+
+         # If search button is clicked but input is empty, show error message
+        if 'q' in self.request.GET and not query:
+            messages.error(self.request, "Please enter a search term.")
 
         # Apply search filter
         if query:

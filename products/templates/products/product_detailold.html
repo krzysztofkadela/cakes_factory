@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} - Cake Factory{% endblock %}
+{% block header %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mb-3">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/600x400?text=No+Image" class="img-fluid" alt="No Image">
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        <h2>{{ product.name }}</h2>
+
+        <!-- Category Display (handles if product.category is None) -->
+        {% if product.category %}
+            <p class="text-muted">{{ product.category.name }}</p>
+        {% else %}
+            <p class="text-muted">No Category</p>
+        {% endif %}
+
+        <p>{{ product.description }}</p>
+
+        <!-- Flavor Display (handles if product.flavor is None) -->
+        {% if product.flavor %}
+            <p><strong>Flavor:</strong> {{ product.flavor.name }}</p>
+        {% endif %}
+
+        <!-- Sizes Display (handles if no sizes exist) -->
+        {% if product.sizes.all %}
+            {% if product.sizes.count %}
+                <p><strong>Available Sizes:</strong>
+                    {% for size in product.sizes.all %}
+                        {{ size.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+            {% else %}
+                <p><strong>Available Sizes:</strong> None</p>
+            {% endif %}
+        {% endif %}
+
+        <!-- Allergen Info -->
+        {% if product.allergen_info %}
+            <p><strong>Allergen Info:</strong> {{ product.allergen_info }}</p>
+        {% endif %}
+
+        <h4 class="mt-4">Price: ${{ product.price }}</h4>
+
+        <!-- Add to Cart Form (commented out until cart is ready) -->
+    
+        
+    </div>
+</div>
+{% endblock %}
