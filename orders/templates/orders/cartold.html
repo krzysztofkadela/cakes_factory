@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Shopping Cart - Cake Factory{% endblock %}
+{% block content %}
+<h2>Your Cart</h2>
+
+{% if cart %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Size</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product_id, item in cart.items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.size }}</td>
+            <td>{{ item.customization }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.price }}</td>
+            <td>${{ item.price|floatformat:2 }}</td>
+            <td>
+                <a href="{{ item.remove_url }}" class="btn btn-danger btn-sm">
+                    <i class="bi bi-trash"></i> Remove
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4>Total: ${{ total_price|floatformat:2 }}</h4>
+<a href="{% url 'checkout' %}" class="btn btn-success">Proceed to Checkout</a>
+{% else %}
+<p>Your cart is empty!</p>
+{% endif %}
+{% endblock %}

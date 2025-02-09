@@ -9,6 +9,7 @@ from .forms import CustomOrderForm
 # Create your views here.
 
 # Add Product to Cart (Session-based cart)
+@login_required
 def cart_add(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     quantity = int(request.POST.get("quantity", 1))
@@ -46,12 +47,21 @@ def cart_add(request, product_id):
 @login_required
 def cart_view(request):
     cart = request.session.get("cart", {})
+    total_price = 0  # Store total cost
 
     for key, item in cart.items():
         product_id, size_id = key.split("_") if "_" in key else (key, None)
-        cart[key]["remove_url"] = reverse("cart_remove", args=[product_id, size_id or 0])
 
-    return render(request, "orders/cart.html", {"cart": cart})
+        # Calculate subtotal
+        item["subtotal"] = float(item["price"]) * int(item["quantity"])
+
+        # Add to total price
+        total_price += item["subtotal"]
+
+        # Generate remove URL
+        item["remove_url"] = reverse("cart_remove", args=[product_id, size_id or 0])
+
+    return render(request, "orders/cart.html", {"cart": cart, "total_price": total_price})
 
 # Remove item from Cart
 @login_required
