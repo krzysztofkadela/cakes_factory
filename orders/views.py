@@ -30,3 +30,22 @@ def cart_add(request, product_id):
     request.session["cart"] = cart
     messages.success(request, f"{product.name} added to cart!")
     return redirect("cart_view")
+
+# View Cart
+@login_required
+def cart_view(request):
+    cart = request.session.get("cart", {})
+    total_price = sum(item["price"] * item["quantity"] for item in cart.values())
+
+    return render(request, "orders/cart.html", {"cart": cart, "total_price": total_price})
+
+# Remove item from Cart
+@login_required
+def cart_remove(request, product_id):
+    cart = request.session.get("cart", {})
+    if str(product_id) in cart:
+        del cart[str(product_id)]
+        request.session["cart"] = cart
+        messages.success(request, "Item removed from cart.")
+
+    return redirect("cart_view")
