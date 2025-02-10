@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="mb-4 text-center">{% block allauth_title %}{% endblock %}</h1>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% block allauth_content %}{% endblock %}
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                {% block allauth_extra %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

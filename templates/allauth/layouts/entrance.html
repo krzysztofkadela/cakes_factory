@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}  <!-- Load Crispy Forms for styling -->
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Page Title -->
+                    <h1 class="mb-4 text-center">{% block allauth_title %}{% endblock %}</h1>
+                    
+                    <!-- Flash Messages (For Success/Error Notices) -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <!-- Content Block (Forms, Info, etc.) -->
+                    {% block allauth_content %}{% endblock %}
+                </div>
+            </div>
+
+            <!-- Extra Links (Login, Signup, Reset Password, etc.) -->
+            <div class="text-center mt-3">
+                {% block allauth_extra %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
