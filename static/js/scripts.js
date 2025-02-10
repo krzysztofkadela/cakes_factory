@@ -7,13 +7,12 @@
 // close messages after 5s automatic...
 
 
-document.addEventListener("DOMContentLoaded", function() {
-    // Auto-dismiss messages after 5 seconds
-    setTimeout(function() {
-      let alerts = document.querySelectorAll('.alert');
-      alerts.forEach((alert) => {
-        let bsAlert = new bootstrap.Alert(alert);
-        bsAlert.close();
+document.addEventListener("DOMContentLoaded", function () {
+  setTimeout(function () {
+      let alerts = document.querySelectorAll(".alert");
+      alerts.forEach(alert => {
+          let bsAlert = new bootstrap.Alert(alert);
+          bsAlert.close();
       });
-    }, 5000); // 5 seconds
-  });
+  }, 5000); // Auto-dismiss after 5 seconds
+});

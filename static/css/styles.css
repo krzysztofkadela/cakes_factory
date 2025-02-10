@@ -28,13 +28,11 @@ body {
 
 /* Hero Section */
 .hero {
-  background: url('../images/hero-bg.jpg') center/cover no-repeat;
-  height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: white;
+  background: url('/static/images/female-baker_new.jpg') no-repeat center center fixed;
+  background-size: cover;
+  height: calc(100vh - 164px);
+  color: #555;
+  font-family: 'Lato';
 }
 
 /* Product Cards */
@@ -45,13 +43,16 @@ body {
   transform: scale(1.05);
 }
 
-/* Message Alerts */
-.message-container {
+
+.messages-container {
   position: fixed;
-  top: 20px;
+  top: 70px; /* Adjust this so it sits right under the navbar */
   right: 20px;
+  max-width: 350px;
   z-index: 1050;
 }
 
-
+.alert {
+  opacity: 0.95;
+}
 
