@@ -23,7 +23,7 @@
             <td>{{ item.size|default:"N/A" }}</td>
             <td>{{ item.customization|default:"None" }}</td>
             <td>
-                <form method="POST" action="{% url 'cart_update' product_id %}">
+                <form method="POST" action="{% url 'cart_update' product_id=item.product_id size_id=item.size_id|default:0 %}">
                     {% csrf_token %}
                     <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control d-inline w-auto">
                     <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>

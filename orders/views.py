@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Order, OrderItem
@@ -47,19 +48,24 @@ def cart_add(request, product_id):
 @login_required
 def cart_view(request):
     cart = request.session.get("cart", {})
-    total_price = 0  # Store total cost
+    total_price = 0  
 
     for key, item in cart.items():
-        product_id, size_id = key.split("_") if "_" in key else (key, None)
+        # Ensure product_id and size_id are extracted properly
+        parts = key.split("_")
+        product_id = parts[0]
+        size_id = parts[1] if len(parts) > 1 else "0"
 
         # Calculate subtotal
         item["subtotal"] = float(item["price"]) * int(item["quantity"])
-
-        # Add to total price
         total_price += item["subtotal"]
 
-        # Generate remove URL
-        item["remove_url"] = reverse("cart_remove", args=[product_id, size_id or 0])
+        # Pass product_id and size_id correctly
+        item["product_id"] = product_id
+        item["size_id"] = size_id
+
+        # Generate correct update URL
+        item["update_url"] = reverse("cart_update", args=[product_id, size_id])
 
     return render(request, "orders/cart.html", {"cart": cart, "total_price": total_price})
 
@@ -151,3 +157,34 @@ def custom_order(request, product_id):
         form = CustomOrderForm()
 
     return render(request, "orders/custom_order.html", {"form": form, "product": product})
+
+def cart_update(request, product_id, size_id=0):
+    """Update the quantity of a product in the cart."""
+    if "cart" not in request.session:
+        request.session["cart"] = {}
+
+    cart = request.session["cart"]
+
+    if request.method == "POST":
+        new_quantity = request.POST.get("quantity")
+
+        if new_quantity and new_quantity.isdigit():
+            new_quantity = int(new_quantity)
+
+            # Construct the correct key including size
+            cart_item_key = f"{product_id}_{size_id}" if int(size_id) > 0 else str(product_id)
+
+            if new_quantity > 0:
+                if cart_item_key in cart:
+                    cart[cart_item_key]["quantity"] = new_quantity
+                    messages.success(request, "Cart updated successfully!")
+                else:
+                    messages.error(request, "Product not found in cart!")
+            else:
+                if cart_item_key in cart:
+                    del cart[cart_item_key]
+                    messages.success(request, "Item removed from cart.")
+
+        request.session.modified = True  # Ensure session updates
+
+    return HttpResponseRedirect(reverse("cart_view"))

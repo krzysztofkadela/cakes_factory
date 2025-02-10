@@ -67,7 +67,3 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.price_each * self.quantity
-
-    @property
-    def line_total(self):
-        return self.price_each * self.quantity
