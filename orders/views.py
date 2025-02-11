@@ -14,12 +14,16 @@ from .forms import CustomOrderForm
 
 # Add Product to Cart (Session-based for guests, DB-based for users)
 def cart_add(request, product_id):
+    """
+    Add product to cart. Stores in session if user is a guest, 
+    or in the database if logged in.
+    """
     product = get_object_or_404(Product, id=product_id)
     quantity = int(request.POST.get("quantity", 1))
     size_id = request.POST.get("size")
     customization = request.POST.get("customization", "").strip()
 
-    # If user is logged in, store cart items in DB
+    # If user is logged in, store in database
     if request.user.is_authenticated:
         size = Size.objects.get(id=size_id) if size_id else None
         cart_item, created = CartItem.objects.get_or_create(
@@ -30,12 +34,13 @@ def cart_add(request, product_id):
             cart_item.quantity += quantity
         cart_item.save()
 
-    # Guest user (store in session)
+    # If user is not logged in, store in session
     else:
         cart = request.session.get("cart", {})
-        size_name = size.name if (size := Size.objects.get(id=size_id)) else "Default"
 
+        size_name = size.name if (size := Size.objects.get(id=size_id)) else "Default"
         cart_item_key = f"{product_id}_{size_id}" if size_id else str(product_id)
+
         if cart_item_key in cart:
             cart[cart_item_key]["quantity"] += quantity
         else:
@@ -55,45 +60,64 @@ def cart_add(request, product_id):
     return redirect("cart_view")
 
 # View Cart
-@login_required
 def cart_view(request):
-    cart = request.session.get("cart", {})
-    total_price = 0  
+    """
+    Display cart items, combining session-based and database-based cart.
+    """
+    cart_items = []
 
-    for key, item in cart.items():
-        # Ensure product_id and size_id are extracted properly
-        parts = key.split("_")
-        product_id = parts[0]
-        size_id = parts[1] if len(parts) > 1 else "0"
+    # If user is logged in, retrieve from database
+    if request.user.is_authenticated:
+        cart_items = CartItem.objects.filter(user=request.user)
 
-        # Calculate subtotal
-        item["subtotal"] = float(item["price"]) * int(item["quantity"])
-        total_price += item["subtotal"]
+    # If guest user, retrieve from session
+    else:
+        session_cart = request.session.get("cart", {})
+        for key, item in session_cart.items():
+            product_id, size_id = key.split("_") if "_" in key else (key, None)
+            cart_items.append({
+                "product_id": product_id,
+                "name": item["name"],
+                "price": item["price"],
+                "quantity": item["quantity"],
+                "size": item["size"],
+                "customization": item["customization"],
+                "subtotal": float(item["price"]) * int(item["quantity"]),
+                "remove_url": reverse("cart_remove", args=[product_id, size_id or 0]),
+            })
 
-        # Pass product_id and size_id correctly
-        item["product_id"] = product_id
-        item["size_id"] = size_id
+    total_price = sum(item["subtotal"] if isinstance(item, dict) else item.line_total for item in cart_items)
 
-        # Generate correct update URL
-        item["update_url"] = reverse("cart_update", args=[product_id, size_id])
-
-    return render(request, "orders/cart.html", {"cart": cart, "total_price": total_price})
+    return render(request, "orders/cart.html", {"cart": cart_items, "total_price": total_price})
 
 # Remove item from Cart
-@login_required
 def cart_remove(request, product_id, size_id=0):
-    cart = request.session.get("cart", {})
+    """
+    Remove an item from the cart.
+    If user is logged in, delete from database.
+    If guest user, delete from session.
+    """
+    if request.user.is_authenticated:
+        cart_item = CartItem.objects.filter(user=request.user, product_id=product_id, size_id=size_id).first()
+        if cart_item:
+            cart_item.delete()
+            messages.success(request, "Item removed from cart.")
+        else:
+            messages.error(request, "Item not found in cart.")
 
-    # Construct the correct key
-    cart_item_key = f"{product_id}_{size_id}" if int(size_id) > 0 else str(product_id)
-
-    if cart_item_key in cart:
-        del cart[cart_item_key]
-        messages.success(request, "Item removed from cart.")
     else:
-        messages.error(request, "Item not found in cart.")
+        cart = request.session.get("cart", {})
+        cart_item_key = f"{product_id}_{size_id}" if int(size_id) > 0 else str(product_id)
 
-    request.session["cart"] = cart
+        if cart_item_key in cart:
+            del cart[cart_item_key]
+            messages.success(request, "Item removed from cart.")
+        else:
+            messages.error(request, "Item not found in cart.")
+
+        request.session["cart"] = cart
+        request.session.modified = True
+
     return redirect("cart_view")
 
 # Checkout Process
@@ -202,7 +226,7 @@ def cart_update(request, product_id, size_id=0):
 @receiver(user_logged_in)
 def merge_cart_on_login(sender, request, user, **kwargs):
     """
-    When user logs in, merge session-based cart into database-based cart.
+    Merge session-based cart into database-based cart when user logs in.
     """
     cart = request.session.get("cart", {})
 
