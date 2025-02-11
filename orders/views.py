@@ -12,52 +12,40 @@ from .forms import CustomOrderForm
 
 # Create your views here.
 
-# Add Product to Cart (Session-based for guests, DB-based for users)
+from django.http import JsonResponse
+
 def cart_add(request, product_id):
-    """
-    Add product to cart. Stores in session if user is a guest, 
-    or in the database if logged in.
-    """
     product = get_object_or_404(Product, id=product_id)
     quantity = int(request.POST.get("quantity", 1))
     size_id = request.POST.get("size")
-    customization = request.POST.get("customization", "").strip()
 
-    # If user is logged in, store in database
-    if request.user.is_authenticated:
-        size = Size.objects.get(id=size_id) if size_id else None
-        cart_item, created = CartItem.objects.get_or_create(
-            user=request.user, product=product, size=size,
-            defaults={"quantity": quantity, "customization": customization}
-        )
-        if not created:
-            cart_item.quantity += quantity
-        cart_item.save()
+    cart = request.session.get("cart", {})
 
-    # If user is not logged in, store in session
+    size = None
+    if size_id:
+        size = get_object_or_404(Size, id=size_id)
+
+    cart_item_key = f"{product_id}_{size_id}" if size else str(product_id)
+
+    if cart_item_key in cart:
+        cart[cart_item_key]["quantity"] += quantity
     else:
-        cart = request.session.get("cart", {})
+        cart[cart_item_key] = {
+            "name": product.name,
+            "price": float(product.price),
+            "quantity": quantity,
+            "size": size.name if size else "Default",
+            "customization": "",
+            "image": product.image.url if product.image else "",
+        }
 
-        size_name = size.name if (size := Size.objects.get(id=size_id)) else "Default"
-        cart_item_key = f"{product_id}_{size_id}" if size_id else str(product_id)
+    request.session["cart"] = cart
+    request.session.modified = True
 
-        if cart_item_key in cart:
-            cart[cart_item_key]["quantity"] += quantity
-        else:
-            cart[cart_item_key] = {
-                "name": product.name,
-                "price": float(product.price),
-                "quantity": quantity,
-                "size": size_name,
-                "customization": customization if customization else "None",
-                "image": product.image.url if product.image else "",
-            }
+    total_items = sum(item["quantity"] for item in cart.values())
+    total_price = sum(float(item["price"]) * item["quantity"] for item in cart.values())
 
-        request.session["cart"] = cart
-        request.session.modified = True
-
-    messages.success(request, f"{quantity} x {product.name} added to cart!")
-    return redirect("cart_view")
+    return JsonResponse({"cart_items": total_items, "cart_total_price": total_price})
 
 def cart_view(request):
     """
@@ -150,35 +138,39 @@ def cart_remove(request, product_id, size_id=0):
 # Checkout Process
 @login_required
 def checkout(request):
-    cart = request.session.get("cart", {})
+    """Handles checkout process for logged-in users."""
+    cart_items = CartItem.objects.filter(user=request.user)
 
-    if not cart:
+    # If session-based cart exists, merge into the user's cart
+    session_cart = request.session.get("cart", {})
+
+    if session_cart:
+        for key, item in session_cart.items():
+            product_id, size_id = key.split("_") if "_" in key else (key, None)
+            product = get_object_or_404(Product, id=product_id)
+
+            # Check if item already exists in the user's cart
+            cart_item, created = CartItem.objects.get_or_create(
+                user=request.user,
+                product=product,
+                size_id=size_id if size_id else None,
+                defaults={"quantity": item["quantity"]},
+            )
+
+            if not created:
+                cart_item.quantity += item["quantity"]
+                cart_item.save()
+
+        # Clear the session cart after merging
+        request.session["cart"] = {}
+
+    if not cart_items.exists():
         messages.error(request, "Your cart is empty!")
         return redirect("cart_view")
 
-    if request.method == "POST":
-        order = Order.objects.create(user=request.user, total_price=0)
-        total_price = 0
+    total_price = sum(item.line_total for item in cart_items)
 
-        for product_id, item in cart.items():
-            product = get_object_or_404(Product, id=product_id)
-            order_item = OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=item["quantity"],
-                size=item["size"],
-                price=item["price"],
-            )
-            total_price += item["price"] * item["quantity"]
-
-        order.total_price = total_price
-        order.save()
-
-        request.session["cart"] = {}  # Clear cart after checkout
-        messages.success(request, "Your order has been placed!")
-        return redirect("order_history")
-
-    return render(request, "orders/checkout.html", {"cart": cart})
+    return render(request, "orders/checkout.html", {"cart": cart_items, "total_price": total_price})
 
 # Order History
 @login_required

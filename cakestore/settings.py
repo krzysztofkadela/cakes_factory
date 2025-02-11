@@ -139,6 +139,8 @@ DATABASES = {
     }
 }
 
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
 # Messages activation
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 

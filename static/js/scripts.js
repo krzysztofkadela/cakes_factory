@@ -16,3 +16,31 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }, 5000); // Auto-dismiss after 5 seconds
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
+      btn.addEventListener("click", function (event) {
+          event.preventDefault();
+
+          let productId = this.getAttribute("data-product-id");
+          let sizeId = document.querySelector("select[name='size']").value || "";
+          let quantity = document.querySelector("input[name='quantity']").value || 1;
+          let csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']").value;
+
+          fetch(`/orders/cart/add/${productId}/`, {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/x-www-form-urlencoded",
+                  "X-CSRFToken": csrfToken,
+              },
+              body: `quantity=${quantity}&size=${sizeId}`,
+          })
+          .then((response) => response.json())
+          .then((data) => {
+              document.querySelector("#cart-count").textContent = data.cart_items;
+              document.querySelector("#cart-total").textContent = `€${data.cart_total_price.toFixed(2)}`;
+          })
+          .catch((error) => console.error("Error:", error));
+      });
+  });
+});
