@@ -3,6 +3,9 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_out
+from django.dispatch import receiver
 from .models import CartItem, Order, OrderItem
 from products.models import Product, Size
 from .forms import CustomOrderForm
@@ -195,3 +198,33 @@ def cart_update(request, product_id, size_id=0):
         request.session.modified = True  # Ensure session updates
 
     return HttpResponseRedirect(reverse("cart_view"))
+
+@receiver(user_logged_in)
+def merge_cart_on_login(sender, request, user, **kwargs):
+    """
+    When user logs in, merge session-based cart into database-based cart.
+    """
+    cart = request.session.get("cart", {})
+
+    for key, item in cart.items():
+        product_id, size_id = key.split("_") if "_" in key else (key, None)
+        product = get_object_or_404(Product, id=product_id)
+        size = get_object_or_404(Size, id=size_id) if size_id else None
+
+        cart_item, created = CartItem.objects.get_or_create(
+            user=user, product=product, size=size,
+            defaults={"quantity": item["quantity"], "customization": item.get("customization", "")}
+        )
+        if not created:
+            cart_item.quantity += item["quantity"]
+        cart_item.save()
+
+    request.session["cart"] = {}  # Clear session cart after merging
+
+@receiver(user_logged_out)
+def clear_cart_on_logout(sender, request, user, **kwargs):
+    """
+    When user logs out, clear session-based cart.
+    """
+    request.session["cart"] = {}
+    request.session.modified = True
