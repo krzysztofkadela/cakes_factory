@@ -7,21 +7,20 @@ class CartItem(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         null=True, blank=True, related_name="cart_items"
     )
-    # For guests, we can track a session key:
-    session_key = models.CharField(max_length=40, null=True, blank=True)
+    session_key = models.CharField(max_length=40, null=True, blank=True)  # Track guest users
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
+    customization = models.TextField(blank=True, null=True)
 
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"
-    
+
     @property
     def line_total(self):
-        """Total price for this cart line = product.price * quantity."""
         return self.product.price * self.quantity
     
 class Order(models.Model):
