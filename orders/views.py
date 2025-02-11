@@ -59,7 +59,6 @@ def cart_add(request, product_id):
     messages.success(request, f"{quantity} x {product.name} added to cart!")
     return redirect("cart_view")
 
-# View Cart
 def cart_view(request):
     """
     Display cart items, combining session-based and database-based cart.
@@ -68,25 +67,53 @@ def cart_view(request):
 
     # If user is logged in, retrieve from database
     if request.user.is_authenticated:
-        cart_items = CartItem.objects.filter(user=request.user)
+        db_cart_items = CartItem.objects.filter(user=request.user)
+
+        for item in db_cart_items:
+            cart_items.append({
+                "product_id": item.product.id,
+                "size_id": item.size.id if item.size else None,
+                "name": item.product.name,
+                "image": item.product.image.url if item.product.image else None,
+                "price": item.product.price,
+                "quantity": item.quantity,
+                "size": item.size.name if item.size else "N/A",
+                "customization": "None",  # No customization stored in DB yet
+                "subtotal": item.line_total,
+                "update_url": reverse("cart_update", args=[item.product.id, item.size.id if item.size else 0]),
+                "remove_url": reverse("cart_remove", args=[item.product.id, item.size.id if item.size else 0]),
+            })
 
     # If guest user, retrieve from session
     else:
         session_cart = request.session.get("cart", {})
         for key, item in session_cart.items():
             product_id, size_id = key.split("_") if "_" in key else (key, None)
+
+            try:
+                product = Product.objects.get(id=product_id)
+                size = Size.objects.get(id=size_id) if size_id else None
+            except Product.DoesNotExist:
+                continue
+            except Size.DoesNotExist:
+                size = None
+
             cart_items.append({
-                "product_id": product_id,
-                "name": item["name"],
-                "price": item["price"],
+                "product_id": product.id,
+                "size_id": size.id if size else None,
+                "name": product.name,
+                "image": product.image.url if product.image else None,
+                "price": float(item["price"]),
                 "quantity": item["quantity"],
-                "size": item["size"],
-                "customization": item["customization"],
+                "size": size.name if size else "N/A",
+                "customization": item.get("customization", "None"),
                 "subtotal": float(item["price"]) * int(item["quantity"]),
-                "remove_url": reverse("cart_remove", args=[product_id, size_id or 0]),
+                "update_url": reverse("cart_update", args=[product.id, size.id if size else 0]),
+                "remove_url": reverse("cart_remove", args=[product.id, size.id if size else 0]),
             })
 
-    total_price = sum(item["subtotal"] if isinstance(item, dict) else item.line_total for item in cart_items)
+    # Calculate total price
+    total_price = sum(item["subtotal"] for item in cart_items)
 
     return render(request, "orders/cart.html", {"cart": cart_items, "total_price": total_price})
 
