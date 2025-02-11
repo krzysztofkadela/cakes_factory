@@ -9,22 +9,29 @@ from django.dispatch import receiver
 from .models import CartItem, Order, OrderItem
 from products.models import Product, Size
 from .forms import CustomOrderForm
+from django.http import JsonResponse
 
 # Create your views here.
 
-from django.http import JsonResponse
 
 def cart_add(request, product_id):
+    """
+    Add a product to the cart. Works for both logged-in users and guests.
+    """
     product = get_object_or_404(Product, id=product_id)
     quantity = int(request.POST.get("quantity", 1))
     size_id = request.POST.get("size")
+    customization = request.POST.get("customization", "").strip()
 
+    # Retrieve or create cart session
     cart = request.session.get("cart", {})
 
+    # Get selected size object
     size = None
     if size_id:
         size = get_object_or_404(Size, id=size_id)
 
+    # Create unique cart key
     cart_item_key = f"{product_id}_{size_id}" if size else str(product_id)
 
     if cart_item_key in cart:
@@ -35,25 +42,30 @@ def cart_add(request, product_id):
             "price": float(product.price),
             "quantity": quantity,
             "size": size.name if size else "Default",
-            "customization": "",
+            "customization": customization if customization else "None",
             "image": product.image.url if product.image else "",
         }
 
     request.session["cart"] = cart
-    request.session.modified = True
+    request.session.modified = True  # ✅ This ensures the session is saved
 
-    total_items = sum(item["quantity"] for item in cart.values())
-    total_price = sum(float(item["price"]) * item["quantity"] for item in cart.values())
+    # ✅ AJAX Support (if request is made via JavaScript)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        total_price = sum(item["price"] * item["quantity"] for item in cart.values())
+        return JsonResponse({"cart_items": len(cart), "cart_total_price": total_price})
 
-    return JsonResponse({"cart_items": total_items, "cart_total_price": total_price})
+    # ✅ Redirect for normal users
+    messages.success(request, f"{quantity} x {product.name} added to cart!")
+    return redirect("cart_view")
 
 def cart_view(request):
     """
-    Display cart items, combining session-based and database-based cart.
+    Display cart items for both guests and logged-in users.
     """
     cart_items = []
+    total_price = 0
 
-    # If user is logged in, retrieve from database
+    # ✅ If user is logged in, retrieve from database
     if request.user.is_authenticated:
         db_cart_items = CartItem.objects.filter(user=request.user)
 
@@ -66,13 +78,14 @@ def cart_view(request):
                 "price": item.product.price,
                 "quantity": item.quantity,
                 "size": item.size.name if item.size else "N/A",
-                "customization": "None",  # No customization stored in DB yet
+                "customization": "None",
                 "subtotal": item.line_total,
                 "update_url": reverse("cart_update", args=[item.product.id, item.size.id if item.size else 0]),
                 "remove_url": reverse("cart_remove", args=[item.product.id, item.size.id if item.size else 0]),
             })
+            total_price += item.line_total
 
-    # If guest user, retrieve from session
+    # ✅ If guest user, retrieve from session
     else:
         session_cart = request.session.get("cart", {})
         for key, item in session_cart.items():
@@ -86,6 +99,9 @@ def cart_view(request):
             except Size.DoesNotExist:
                 size = None
 
+            subtotal = float(item["price"]) * int(item["quantity"])
+            total_price += subtotal
+
             cart_items.append({
                 "product_id": product.id,
                 "size_id": size.id if size else None,
@@ -95,13 +111,10 @@ def cart_view(request):
                 "quantity": item["quantity"],
                 "size": size.name if size else "N/A",
                 "customization": item.get("customization", "None"),
-                "subtotal": float(item["price"]) * int(item["quantity"]),
+                "subtotal": subtotal,
                 "update_url": reverse("cart_update", args=[product.id, size.id if size else 0]),
                 "remove_url": reverse("cart_remove", args=[product.id, size.id if size else 0]),
             })
-
-    # Calculate total price
-    total_price = sum(item["subtotal"] for item in cart_items)
 
     return render(request, "orders/cart.html", {"cart": cart_items, "total_price": total_price})
 
@@ -135,13 +148,12 @@ def cart_remove(request, product_id, size_id=0):
 
     return redirect("cart_view")
 
-# Checkout Process
 @login_required
 def checkout(request):
     """Handles checkout process for logged-in users."""
     cart_items = CartItem.objects.filter(user=request.user)
 
-    # If session-based cart exists, merge into the user's cart
+    # ✅ Merge session cart if it exists
     session_cart = request.session.get("cart", {})
 
     if session_cart:
@@ -149,7 +161,7 @@ def checkout(request):
             product_id, size_id = key.split("_") if "_" in key else (key, None)
             product = get_object_or_404(Product, id=product_id)
 
-            # Check if item already exists in the user's cart
+            # ✅ Add item to user's cart if not exists
             cart_item, created = CartItem.objects.get_or_create(
                 user=request.user,
                 product=product,
@@ -161,14 +173,14 @@ def checkout(request):
                 cart_item.quantity += item["quantity"]
                 cart_item.save()
 
-        # Clear the session cart after merging
+        # ✅ Clear session cart after merging
         request.session["cart"] = {}
 
     if not cart_items.exists():
         messages.error(request, "Your cart is empty!")
         return redirect("cart_view")
 
-    # ✅ Convert CartItem objects to a format similar to session cart
+    # ✅ Convert CartItem objects to list format
     formatted_cart = []
     total_price = 0
 

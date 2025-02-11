@@ -18,29 +18,41 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
-      btn.addEventListener("click", function (event) {
-          event.preventDefault();
+  const addToCartForms = document.querySelectorAll(".add-to-cart-form");
 
-          let productId = this.getAttribute("data-product-id");
-          let sizeId = document.querySelector("select[name='size']").value || "";
-          let quantity = document.querySelector("input[name='quantity']").value || 1;
-          let csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']").value;
+  addToCartForms.forEach((form) => {
+      form.addEventListener("submit", function (event) {
+          event.preventDefault();  // Prevent full page reload
 
-          fetch(`/orders/cart/add/${productId}/`, {
+          const formData = new FormData(this);
+          const actionUrl = this.getAttribute("action");
+
+          fetch(actionUrl, {
               method: "POST",
+              body: formData,
               headers: {
-                  "Content-Type": "application/x-www-form-urlencoded",
-                  "X-CSRFToken": csrfToken,
+                  "X-Requested-With": "XMLHttpRequest",
               },
-              body: `quantity=${quantity}&size=${sizeId}`,
           })
-          .then((response) => response.json())
-          .then((data) => {
-              document.querySelector("#cart-count").textContent = data.cart_items;
-              document.querySelector("#cart-total").textContent = `€${data.cart_total_price.toFixed(2)}`;
+          .then(response => response.json())
+          .then(data => {
+              if (data.cart_items !== undefined) {
+                  // Update cart count in the navbar
+                  document.getElementById("cart-count").innerText = data.cart_items;
+                  document.getElementById("cart-total").innerText = `€${data.cart_total_price.toFixed(2)}`;
+
+                  // Show success message
+                  const successMessage = document.createElement("div");
+                  successMessage.classList.add("alert", "alert-success", "mt-2");
+                  successMessage.innerHTML = "Item added to cart!";
+                  document.body.appendChild(successMessage);
+
+                  setTimeout(() => successMessage.remove(), 3000); // Auto-remove after 3 sec
+              } else {
+                  window.location.href = actionUrl;  // Redirect to cart page if JSON fails
+              }
           })
-          .catch((error) => console.error("Error:", error));
+          .catch(error => console.error("Error adding to cart:", error));
       });
   });
 });
