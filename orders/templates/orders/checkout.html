@@ -15,18 +15,18 @@
                     <th>Product</th>
                     <th>Size</th>
                     <th>Quantity</th>
-                    <th>Price</th>
+                    <th>Unit Price</th>
                     <th>Subtotal</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in cart %}
                 <tr>
-                    <td>{{ item.name }}</td>  <!-- ✅ Ensure product name is fetched -->
+                    <td>{{ item.name }}</td>  <!-- ✅ Ensure product name is displayed -->
                     <td>{{ item.size|default:"-" }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>€{{ item.price|floatformat:2 }}</td>
-                    <td>€{{ item.subtotal|floatformat:2 }}</td>
+                    <td>€{{ item.price|floatformat:2 }}</td>  <!-- ✅ Updated with dynamic price -->
+                    <td>€{{ item.subtotal|floatformat:2 }}</td>  <!-- ✅ Correct subtotal -->
                 </tr>
                 {% endfor %}
             </tbody>
@@ -35,15 +35,15 @@
         <!-- Total Price & Buttons -->
         <div class="text-end mt-4">
             <h4><strong>Total: €{{ total_price|floatformat:2 }}</strong></h4>
-            
+
             <a href="{% url 'cart_view' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Go Back to Cart
+                <i class="bi bi-arrow-left"></i> Back to Cart
             </a>
 
             <form method="POST" class="d-inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-credit-card"></i> Place Order
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-credit-card"></i> Confirm & Pay
                 </button>
             </form>
         </div>
