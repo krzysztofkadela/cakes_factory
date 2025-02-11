@@ -1,21 +1,57 @@
 {% extends "base.html" %}
 {% block title %}Checkout - Cake Factory{% endblock %}
 {% block content %}
-<h2>Checkout</h2>
 
-{% if cart %}
-    <form method="POST">
-        {% csrf_token %}
-        <p>Please confirm your order before proceeding.</p>
-        <ul>
-            {% for product_id, item in cart.items %}
-            <li>{{ item.quantity }}x {{ item.name }} ({{ item.size|default:"-" }}) - ${{ item.price }}</li>
-            {% endfor %}
-        </ul>
-        <h4>Total: ${{ total_price|floatformat:2 }}</h4>
-        <button type="submit" class="btn btn-primary">Place Order</button>
-    </form>
-{% else %}
-    <p>Your cart is empty!</p>
-{% endif %}
+<div class="container">
+    <h2 class="mb-4">🛒 Checkout</h2>
+
+    {% if cart %}
+        <p class="alert alert-info">Please review your order before proceeding.</p>
+
+        <!-- Order Summary Table -->
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Product</th>
+                    <th>Size</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart %}
+                <tr>
+                    <td>{{ item.name }}</td>  <!-- ✅ Ensure product name is fetched -->
+                    <td>{{ item.size|default:"-" }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>€{{ item.price|floatformat:2 }}</td>
+                    <td>€{{ item.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Total Price & Buttons -->
+        <div class="text-end mt-4">
+            <h4><strong>Total: €{{ total_price|floatformat:2 }}</strong></h4>
+            
+            <a href="{% url 'cart_view' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Go Back to Cart
+            </a>
+
+            <form method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-credit-card"></i> Place Order
+                </button>
+            </form>
+        </div>
+        
+    {% else %}
+        <p class="alert alert-warning">Your cart is empty! Start shopping now.</p>
+        <a href="{% url 'product_list' %}" class="btn btn-primary">Browse Products</a>
+    {% endif %}
+</div>
+
 {% endblock %}

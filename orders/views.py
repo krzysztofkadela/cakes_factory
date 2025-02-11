@@ -168,9 +168,25 @@ def checkout(request):
         messages.error(request, "Your cart is empty!")
         return redirect("cart_view")
 
-    total_price = sum(item.line_total for item in cart_items)
+    # ✅ Convert CartItem objects to a format similar to session cart
+    formatted_cart = []
+    total_price = 0
 
-    return render(request, "orders/checkout.html", {"cart": cart_items, "total_price": total_price})
+    for item in cart_items:
+        formatted_cart.append({
+            "product_id": item.product.id,
+            "name": item.product.name,  # ✅ Ensure name is fetched
+            "size": item.size.name if item.size else "-",
+            "quantity": item.quantity,
+            "price": item.product.price,
+            "subtotal": item.line_total,  # Uses @property from model
+        })
+        total_price += item.line_total
+
+    return render(request, "orders/checkout.html", {
+        "cart": formatted_cart,  # ✅ Send formatted cart to template
+        "total_price": total_price,
+    })
 
 # Order History
 @login_required
