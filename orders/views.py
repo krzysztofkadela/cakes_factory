@@ -13,7 +13,6 @@ from django.http import JsonResponse
 
 # Create your views here.
 
-
 def cart_add(request, product_id):
     """
     Add a product to the cart. Works for both logged-in users and guests.
@@ -28,14 +27,8 @@ def cart_add(request, product_id):
 
     # Get selected size object
     size = None
-    price = float(product.price)  # Start with base price (smallest size)
     if size_id:
         size = get_object_or_404(Size, id=size_id)
-
-        # Increase price for larger sizes (each size step adds $20)
-        size_levels = list(Size.objects.order_by("id").values_list("id", flat=True))  # Sort sizes
-        size_index = size_levels.index(size.id) if size.id in size_levels else 0
-        price += size_index * 20  # Add $20 for each size step
 
     # Create unique cart key
     cart_item_key = f"{product_id}_{size_id}" if size else str(product_id)
@@ -45,7 +38,7 @@ def cart_add(request, product_id):
     else:
         cart[cart_item_key] = {
             "name": product.name,
-            "price": price,
+            "price": float(product.price),
             "quantity": quantity,
             "size": size.name if size else "Default",
             "customization": customization if customization else "None",
@@ -156,7 +149,7 @@ def cart_remove(request, product_id, size_id=0):
 
 @login_required
 def checkout(request):
-    """Handles checkout process for logged-in users with size-based dynamic pricing."""
+    """Handles checkout process for logged-in users."""
     cart_items = CartItem.objects.filter(user=request.user)
 
     # ✅ Merge session cart if it exists
@@ -166,13 +159,12 @@ def checkout(request):
         for key, item in session_cart.items():
             product_id, size_id = key.split("_") if "_" in key else (key, None)
             product = get_object_or_404(Product, id=product_id)
-            size = get_object_or_404(Size, id=size_id) if size_id else None
 
             # ✅ Add item to user's cart if not exists
             cart_item, created = CartItem.objects.get_or_create(
                 user=request.user,
                 product=product,
-                size=size,
+                size_id=size_id if size_id else None,
                 defaults={"quantity": item["quantity"]},
             )
 
@@ -187,30 +179,23 @@ def checkout(request):
         messages.error(request, "Your cart is empty!")
         return redirect("cart_view")
 
-    # ✅ Convert CartItem objects to list format with dynamic pricing
+    # ✅ Convert CartItem objects to list format
     formatted_cart = []
     total_price = 0
 
-    # Retrieve sorted size levels to determine the price increase
-    size_levels = list(Size.objects.order_by("id").values_list("id", flat=True))
-
     for item in cart_items:
-        # Get size index in the sorted list
-        size_index = size_levels.index(item.size.id) if item.size else 0
-        adjusted_price = item.product.price + (size_index * 20)  # Increase price by $20 per size level
-
         formatted_cart.append({
             "product_id": item.product.id,
-            "name": item.product.name,
+            "name": item.product.name,  # ✅ Ensure name is fetched
             "size": item.size.name if item.size else "-",
             "quantity": item.quantity,
-            "price": adjusted_price,  # ✅ Updated price based on size
-            "subtotal": adjusted_price * item.quantity,  # ✅ Updated subtotal calculation
+            "price": item.product.price,
+            "subtotal": item.line_total,  # Uses @property from model
         })
-        total_price += adjusted_price * item.quantity
+        total_price += item.line_total
 
     return render(request, "orders/checkout.html", {
-        "cart": formatted_cart,  # ✅ Send formatted cart with adjusted prices
+        "cart": formatted_cart,  # ✅ Send formatted cart to template
         "total_price": total_price,
     })
 
