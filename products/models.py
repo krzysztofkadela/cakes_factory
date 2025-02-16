@@ -60,7 +60,7 @@ class Product(models.Model):
 
     image = models.ImageField(upload_to="product_images/", blank=True, null=True)
     allergen_info = models.TextField(blank=True, help_text="E.g., Contains nuts, gluten-free")
-    available = models.BooleanField(default=True)
+    available = models.BooleanField(default=True) # If needed deactivate.
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
