@@ -13,7 +13,7 @@ from django.http import JsonResponse
 
 # Create your views here.
 
-def cart_add(request, product_id):
+def cart_addold(request, product_id):
     """
     Add a product to the cart with the correct size-based pricing.
     """
@@ -68,6 +68,71 @@ def cart_add(request, product_id):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         cart_total_price = sum(float(item["price"]) * item["quantity"] for item in request.session.get("cart", {}).values())
         return JsonResponse({"cart_items": len(request.session.get("cart", {})), "cart_total_price": cart_total_price})
+
+    messages.success(request, f"{quantity} x {product.name} added to cart!")
+    return redirect("cart_view")
+
+def cart_add(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    quantity = int(request.POST.get("quantity", 1))
+    size_id = request.POST.get("size")
+    customization = request.POST.get("customization", "").strip()
+
+    size = Size.objects.filter(id=size_id).first() if size_id else None
+
+    if request.user.is_authenticated:
+        # LOGGED-IN USER: Use database cart
+        cart_item, created = CartItem.objects.get_or_create(
+            user=request.user,
+            product=product,
+            size=size,
+            defaults={"quantity": quantity, "customization": customization}
+        )
+        if not created:
+            cart_item.quantity += quantity
+        cart_item.save()
+
+    else:
+        # GUEST USER: Store in session
+        cart = request.session.get("cart", {})
+        cart_item_key = f"{product_id}_{size_id}" if size else str(product_id)
+
+        # adjusted_price likely a Decimal => cast to float
+        adjusted_price = product.price
+        if size:
+            if size.name.lower() == "large":
+                adjusted_price += 20
+            elif size.name.lower() == "x-large":
+                adjusted_price += 40
+
+        adjusted_price = float(adjusted_price)  # <-- critical fix here
+
+        if cart_item_key in cart:
+            cart[cart_item_key]["quantity"] += quantity
+        else:
+            cart[cart_item_key] = {
+                "name": product.name,
+                "price": adjusted_price,  # store float
+                "quantity": quantity,
+                "size": size.name if size else "Default",
+                "customization": customization if customization else "None",
+                "image": product.image.url if product.image else "",
+            }
+
+        request.session["cart"] = cart
+        request.session.modified = True
+
+    # AJAX support
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Convert any potential decimals to float again
+        cart_total_price = sum(
+            float(item["price"]) * item["quantity"]
+            for item in request.session.get("cart", {}).values()
+        )
+        return JsonResponse({
+            "cart_items": len(request.session.get("cart", {})),
+            "cart_total_price": float(cart_total_price),
+        })
 
     messages.success(request, f"{quantity} x {product.name} added to cart!")
     return redirect("cart_view")
