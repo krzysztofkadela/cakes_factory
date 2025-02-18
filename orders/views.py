@@ -15,16 +15,13 @@ from django.http import JsonResponse
 
 def cart_add(request, product_id):
     """
-    Add a product to the cart.
-    - If logged in, store in the database.
-    - If guest, store in session.
+    Add a product to the cart with the correct size-based pricing.
     """
     product = get_object_or_404(Product, id=product_id)
     quantity = int(request.POST.get("quantity", 1))
     size_id = request.POST.get("size")
     customization = request.POST.get("customization", "").strip()
 
-    # Retrieve size object (if selected)
     size = Size.objects.filter(id=size_id).first() if size_id else None
 
     if request.user.is_authenticated:
@@ -37,22 +34,27 @@ def cart_add(request, product_id):
         )
 
         if not created:
-            cart_item.quantity += quantity  # Update quantity if item exists
+            cart_item.quantity += quantity
             cart_item.save()
 
     else:
-        # ✅ GUEST USER: Use session cart
+        # ✅ GUEST USER: Store in session
         cart = request.session.get("cart", {})
-
-        # Ensure correct cart key
         cart_item_key = f"{product_id}_{size_id}" if size else str(product_id)
+
+        adjusted_price = product.price
+        if size:
+            if size.name.lower() == "large":
+                adjusted_price += 20
+            elif size.name.lower() == "x-large":
+                adjusted_price += 40
 
         if cart_item_key in cart:
             cart[cart_item_key]["quantity"] += quantity
         else:
             cart[cart_item_key] = {
                 "name": product.name,
-                "price": float(product.price),
+                "price": adjusted_price,
                 "quantity": quantity,
                 "size": size.name if size else "Default",
                 "customization": customization if customization else "None",
@@ -62,12 +64,11 @@ def cart_add(request, product_id):
         request.session["cart"] = cart
         request.session.modified = True  # ✅ Ensure session updates
 
-    # ✅ AJAX Support (if request is made via JavaScript)
+    # ✅ AJAX Support
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         cart_total_price = sum(float(item["price"]) * item["quantity"] for item in request.session.get("cart", {}).values())
         return JsonResponse({"cart_items": len(request.session.get("cart", {})), "cart_total_price": cart_total_price})
 
-    # ✅ Redirect for normal users
     messages.success(request, f"{quantity} x {product.name} added to cart!")
     return redirect("cart_view")
 
@@ -83,7 +84,8 @@ def cart_view(request):
         db_cart_items = CartItem.objects.filter(user=request.user)
 
         for item in db_cart_items:
-            subtotal = item.line_total
+            adjusted_price = item.adjusted_price  # ✅ Adjusted price for size
+            subtotal = adjusted_price * item.quantity
             total_price += subtotal
 
             cart_items.append({
@@ -91,7 +93,7 @@ def cart_view(request):
                 "size_id": item.size.id if item.size else None,
                 "name": item.product.name,
                 "image": item.product.image.url if item.product.image else None,
-                "price": item.product.price,
+                "price": adjusted_price,
                 "quantity": item.quantity,
                 "size": item.size.name if item.size else "N/A",
                 "customization": item.customization if item.customization else "None",
@@ -133,6 +135,7 @@ def cart_view(request):
 
     return render(request, "orders/cart.html", {"cart": cart_items, "total_price": total_price})
 
+
 # Remove item from Cart
 def cart_remove(request, product_id, size_id=0):
     """
@@ -168,52 +171,32 @@ def checkout(request):
     """Handles checkout process for logged-in users."""
     cart_items = CartItem.objects.filter(user=request.user)
 
-    # ✅ Merge session cart if it exists
-    session_cart = request.session.get("cart", {})
-
-    if session_cart:
-        for key, item in session_cart.items():
-            product_id, size_id = key.split("_") if "_" in key else (key, None)
-            product = get_object_or_404(Product, id=product_id)
-
-            # ✅ Add item to user's cart if not exists
-            cart_item, created = CartItem.objects.get_or_create(
-                user=request.user,
-                product=product,
-                size_id=size_id if size_id else None,
-                defaults={"quantity": item["quantity"]},
-            )
-
-            if not created:
-                cart_item.quantity += item["quantity"]
-                cart_item.save()
-
-        # ✅ Clear session cart after merging
-        request.session["cart"] = {}
-
     if not cart_items.exists():
         messages.error(request, "Your cart is empty!")
         return redirect("cart_view")
 
-    # ✅ Convert CartItem objects to list format
     formatted_cart = []
     total_price = 0
 
     for item in cart_items:
+        adjusted_price = item.adjusted_price  # ✅ Corrected price calculation
+        subtotal = adjusted_price * item.quantity
+
         formatted_cart.append({
             "product_id": item.product.id,
-            "name": item.product.name,  # ✅ Ensure name is fetched
+            "name": item.product.name,
             "size": item.size.name if item.size else "-",
             "quantity": item.quantity,
-            "price": item.product.price,
-            "subtotal": item.line_total,  # Uses @property from model
+            "price": adjusted_price,
+            "subtotal": subtotal,
         })
-        total_price += item.line_total
+        total_price += subtotal
 
     return render(request, "orders/checkout.html", {
-        "cart": formatted_cart,  # ✅ Send formatted cart to template
+        "cart": formatted_cart,
         "total_price": total_price,
     })
+
 
 # Order History
 @login_required

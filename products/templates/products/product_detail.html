@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}  <!-- Load static files -->
 {% block title %}{{ product.name }} - Cake Factory{% endblock %}
 {% block header %}{{ product.name }}{% endblock %}
 
@@ -28,36 +29,40 @@
             <p><strong>Flavor:</strong> {{ product.flavor.name }}</p>
         {% endif %}
 
-        <!-- Sizes Display -->
-        {% if product.sizes.all %}
-            <form method="POST" action="{% url 'cart_add' product.id %}">
-                {% csrf_token %}
+        <form method="POST" action="{% url 'cart_add' product.id %}">
+            {% csrf_token %}
+
+            <!-- Size Selection -->
+            {% if product.sizes.all %}
                 <div class="mb-3">
                     <label for="size" class="form-label"><strong>Choose Size:</strong></label>
                     <select name="size" id="size" class="form-select">
                         {% for size in product.sizes.all %}
-                            <option value="{{ size.id }}">{{ size.name }}</option>
+                            <option value="{{ size.id }}" data-size-name="{{ size.name }}">{{ size.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-        {% endif %}
+            {% endif %}
 
-        <!-- Customization Request -->
-        <div class="mb-3">
-            <label for="customization" class="form-label"><strong>Customization Request:</strong></label>
-            <textarea name="customization" id="customization" class="form-control" placeholder="E.g., 'Happy Birthday Emma!'"></textarea>
-        </div>
+            <!-- Customization Request -->
+            <div class="mb-3">
+                <label for="customization" class="form-label"><strong>Customization Request:</strong></label>
+                <textarea name="customization" id="customization" class="form-control" placeholder="E.g., 'Happy Birthday Emma!'"></textarea>
+            </div>
 
-        <h4 class="mt-4">Price: ${{ product.price }}</h4>
+            <!-- Dynamic Price Display -->
+            <h4 class="mt-4">Price: <span id="product-price" data-base-price="{{ product.price }}">€{{ product.price }}</span></h4>
 
-        <!-- Add to Cart Button -->
-        <div class="d-flex align-items-center mb-3">
-            <label for="quantity" class="me-2 mb-0">Quantity:</label>
-            <input type="number" name="quantity" id="quantity" value="1" min="1" class="form-control w-auto">
-        </div>
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-cart-plus me-1"></i> Add to Cart
-        </button>
+            <!-- Quantity Selection -->
+            <div class="d-flex align-items-center mb-3">
+                <label for="quantity" class="me-2 mb-0">Quantity:</label>
+                <input type="number" name="quantity" id="quantity" value="1" min="1" class="form-control w-auto">
+            </div>
+
+            <!-- Add to Cart Button -->
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-cart-plus me-1"></i> Add to Cart
+            </button>
         </form>
 
         <!-- Back to Products Button -->
@@ -66,4 +71,6 @@
         </a>
     </div>
 </div>
+
+
 {% endblock %}

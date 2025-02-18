@@ -22,11 +22,14 @@ class CartItem(models.Model):
     @property
     def adjusted_price(self):
         """Calculate price based on size selection."""
+        SIZE_PRICE_ADJUSTMENT = {
+            "Small": 0,  
+            "Large": 20,  
+            "X-large": 40  
+        }
         base_price = self.product.price
-        if self.size:
-            size_multiplier = 20 * (self.size.id)  # Assuming ID 1=Small, 2=Medium, 3=Large
-            return base_price + size_multiplier
-        return base_price
+        size_adjustment = SIZE_PRICE_ADJUSTMENT.get(self.size.name if self.size else "Small", 0)
+        return base_price + size_adjustment  # ✅ Ensures correct pricing
 
     @property
     def line_total(self):
@@ -104,23 +107,25 @@ class OrderItem(models.Model):
 
     @property
     def adjusted_price(self):
-        """Calculate and store price based on size selection."""
+        """Calculate price based on size selection."""
+        SIZE_PRICE_ADJUSTMENT = {
+            "Small": 0,  
+            "Large": 20,  
+            "X-large": 40 
+        }
         base_price = self.product.price
-        if self.size:
-            size_multiplier = 20 * (self.size.id)
-            return base_price + size_multiplier
-        return base_price
+        size_adjustment = SIZE_PRICE_ADJUSTMENT.get(self.size.name if self.size else "Small", 0)
+        return base_price + size_adjustment  # ✅ Ensures correct pricing
 
     @property
     def line_total(self):
         return self.price_each * self.quantity
 
     def save(self, *args, **kwargs):
-        """Ensure price_each is correctly set when saving."""
-        if not self.price_each:
-            self.price_each = self.adjusted_price
+        """Ensure price_each is correctly set before saving."""
+        self.price_each = self.adjusted_price  # ✅ Always set correct price
         super().save(*args, **kwargs)
-        self.order.update_total()
+        self.order.update_total()  # ✅ Ensures order total is updated
 
     def delete(self, *args, **kwargs):
         """Update order total on item removal."""

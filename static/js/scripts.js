@@ -56,3 +56,31 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 });
+
+// Dynamic Price Update
+
+document.addEventListener("DOMContentLoaded", function () {
+    const sizeDropdown = document.getElementById("size");
+    const priceDisplay = document.getElementById("product-price");
+    const basePrice = parseFloat(priceDisplay.dataset.basePrice); // Get base price from data attribute
+
+    const sizeAdjustments = {
+        "Small": 0,
+        "Large": 20,
+        "X-large": 40
+    };
+
+    function updatePrice() {
+        const selectedSize = sizeDropdown.options[sizeDropdown.selectedIndex].text.trim();
+        const extraCost = sizeAdjustments[selectedSize] || 0;
+        const newPrice = basePrice + extraCost;
+
+        if (!isNaN(newPrice)) {
+            priceDisplay.innerText = `€${newPrice.toFixed(2)}`;
+        }
+    }
+
+    if (sizeDropdown) {
+        sizeDropdown.addEventListener("change", updatePrice);
+    }
+});
