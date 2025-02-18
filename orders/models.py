@@ -10,21 +10,28 @@ class CartItem(models.Model):
         null=True, blank=True, related_name="cart_items"
     )
     session_key = models.CharField(max_length=40, null=True, blank=True)  # For guest users
-
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     customization = models.TextField(blank=True, null=True)
-
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"
 
     @property
+    def adjusted_price(self):
+        """Calculate price based on size selection."""
+        base_price = self.product.price
+        if self.size:
+            size_multiplier = 20 * (self.size.id)  # Assuming ID 1=Small, 2=Medium, 3=Large
+            return base_price + size_multiplier
+        return base_price
+
+    @property
     def line_total(self):
-        """Calculate total price for this cart item."""
-        return self.product.price * self.quantity
+        """Total price for this cart item (quantity included)."""
+        return self.adjusted_price * self.quantity
 
 
 class Order(models.Model):
@@ -96,11 +103,22 @@ class OrderItem(models.Model):
     price_each = models.DecimalField(max_digits=10, decimal_places=2)
 
     @property
+    def adjusted_price(self):
+        """Calculate and store price based on size selection."""
+        base_price = self.product.price
+        if self.size:
+            size_multiplier = 20 * (self.size.id)
+            return base_price + size_multiplier
+        return base_price
+
+    @property
     def line_total(self):
         return self.price_each * self.quantity
 
     def save(self, *args, **kwargs):
-        """Update order total on item addition."""
+        """Ensure price_each is correctly set when saving."""
+        if not self.price_each:
+            self.price_each = self.adjusted_price
         super().save(*args, **kwargs)
         self.order.update_total()
 
