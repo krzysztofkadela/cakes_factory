@@ -8,7 +8,7 @@ from django.contrib.auth.signals import user_logged_out
 from django.dispatch import receiver
 from .models import CartItem, Order, OrderItem
 from products.models import Product, Size
-from .forms import CustomOrderForm
+from .forms import CustomOrderForm, OrderForm
 from django.http import JsonResponse
 
 # Create your views here.
@@ -231,8 +231,134 @@ def cart_remove(request, product_id, size_id=0):
 
     return redirect("cart_view")
 
-@login_required
 def checkout(request):
+    """
+    Checkout view for both guests and logged-in users.
+    We separate the logic to avoid mixing bracket-notation
+    (for session cart) with dot-notation (for CartItem objects).
+    """
+
+    # --------------------------
+    # 1. Build a list of cart items
+    #    as dictionaries for uniformity
+    # --------------------------
+    cart_list = []
+    total_price = 0
+
+    if request.user.is_authenticated:
+        # Auth user: get cart from DB
+        db_cart_items = CartItem.objects.filter(user=request.user)
+
+        if not db_cart_items.exists():
+            messages.error(request, "Your cart is empty!")
+            return redirect("cart_view")
+
+        # Convert db CartItem objects to dictionaries
+        for item in db_cart_items:
+            line_subtotal = float(item.line_total)
+            total_price += line_subtotal
+
+            cart_list.append({
+                "product": item.product,
+                "size": item.size,
+                "quantity": item.quantity,
+                "price": float(item.adjusted_price),  # Convert Decimal to float
+                "subtotal": line_subtotal,
+            })
+    else:
+        # Guest user: get cart from session
+        session_cart = request.session.get("cart", {})
+        if not session_cart:
+            messages.error(request, "Your cart is empty!")
+            return redirect("cart_view")
+
+        for key, val in session_cart.items():
+            product_id, size_id = key.split("_") if "_" in key else (key, None)
+            try:
+                product = Product.objects.get(id=product_id)
+                size = Size.objects.get(id=size_id) if size_id else None
+
+                quantity = val["quantity"]
+                price = float(val["price"])
+                subtotal = price * quantity
+                total_price += subtotal
+
+                cart_list.append({
+                    "product": product,
+                    "size": size,
+                    "quantity": quantity,
+                    "price": price,
+                    "subtotal": subtotal,
+                })
+
+            except (Product.DoesNotExist, Size.DoesNotExist):
+                continue
+
+    # --------------------------
+    # 2. Handle POST: place order
+    # --------------------------
+    if request.method == "POST":
+        form = OrderForm(request.POST)
+        create_account = request.POST.get("create_account")
+
+        if form.is_valid():
+            # Create the Order object from the form
+            new_order = form.save(commit=False)
+            if request.user.is_authenticated:
+                new_order.user = request.user
+            new_order.save()
+
+            # Create OrderItems from our cart_list
+            for c_item in cart_list:
+                OrderItem.objects.create(
+                    order=new_order,
+                    product=c_item["product"],
+                    size=c_item["size"],
+                    quantity=c_item["quantity"],
+                    price_each=c_item["price"]
+                )
+
+            # If guest wants to create an account
+            if not request.user.is_authenticated and create_account:
+                email = form.cleaned_data['email']
+                if not User.objects.filter(username=email).exists():
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password="temporarypassword"
+                    )
+                    new_order.user = user
+                    new_order.save()
+                    messages.success(request, "Account created! Check your email to set a password.")
+
+            # Clear the cart
+            if request.user.is_authenticated:
+                CartItem.objects.filter(user=request.user).delete()
+            else:
+                request.session["cart"] = {}
+                request.session.modified = True
+
+            messages.success(request, "Order placed! Proceed to payment.")
+            return redirect("some_payment_view")  # Replace with your payment step
+
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+    
+    else:
+        # Pre-fill form for logged-in users
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data["full_name"] = request.user.get_full_name()
+            initial_data["email"] = request.user.email
+        form = OrderForm(initial=initial_data)
+
+    return render(request, "orders/checkout.html", {
+        "form": form,
+        "cart_items": cart_list,   # a list of dicts
+        "total_price": total_price,
+    })
+
+def checkoutold(request):
     """Handles checkout process for logged-in users."""
     cart_items = CartItem.objects.filter(user=request.user)
 

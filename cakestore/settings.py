@@ -13,6 +13,14 @@ import os
 from pathlib import Path
 from django.contrib.messages import constants as messages
 
+
+# 1. Import env.py to load variables:
+try:
+    from ..env import *
+except ImportError:
+    # If env.py doesn't exist (e.g., on production), handle as needed
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,6 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-=1a9@w+!hv)4rz^d_t(pf&61%r+(_x73cuna&$nj(2yu3v1ly6'
+
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
