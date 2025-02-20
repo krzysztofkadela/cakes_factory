@@ -1,0 +1,10 @@
+<!-- templates/payment_cancel.html -->
+{% extends "base.html" %}
+{% block title %}Payment Canceled{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Payment Canceled</h2>
+    <p>It looks like your payment was canceled or failed. You can retry if you wish.</p>
+    <a href="{% url 'cart_view' %}" class="btn btn-primary">Return to Cart</a>
+</div>
+{% endblock %}

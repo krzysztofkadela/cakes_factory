@@ -1,3 +1,6 @@
+import stripe
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -10,6 +13,8 @@ from .models import CartItem, Order, OrderItem
 from products.models import Product, Size
 from .forms import CustomOrderForm, OrderForm
 from django.http import JsonResponse
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # Create your views here.
 
@@ -504,3 +509,58 @@ def clear_cart_on_logout(sender, request, user, **kwargs):
     """
     request.session["cart"] = {}
     request.session.modified = True
+
+@login_required
+def create_checkout_session(request):
+    """
+    1. Gather the user's cart items and total.
+    2. Create a Stripe Checkout Session.
+    3. Redirect user to the session's URL.
+    """
+    user = request.user
+    cart_items = CartItem.objects.filter(user=user)
+    
+    if not cart_items.exists():
+        # no items in cart, handle error or redirect
+        return redirect("cart_view")
+    
+    # Build line items array for Stripe
+    # We'll show a simple example with quantity & price each item
+    line_items = []
+    for item in cart_items:
+        line_items.append({
+            'price_data': {
+                'currency': 'eur',  # or 'usd', etc.
+                'product_data': {
+                    'name': item.product.name,
+                },
+                'unit_amount': int(item.adjusted_price * 100),  # in cents
+            },
+            'quantity': item.quantity,
+        })
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],  # or more
+            line_items=line_items,
+            mode='payment',
+            success_url=request.build_absolute_uri('/payment/success/'),
+            cancel_url=request.build_absolute_uri('/payment/cancel/'),
+        )
+        
+        # Stripe responds with a session object that includes a URL
+        return redirect(checkout_session.url)
+
+    except Exception as e:
+        # Handle error properly in production
+        return JsonResponse({'error': str(e)})
+    
+
+def payment_success(request):
+    # Clear user cart or mark items as purchased
+    # Show a success message
+    return render(request, 'payment_success.html')
+
+def payment_cancel(request):
+    # Just show a "Payment canceled" message, let them retry
+    return render(request, 'payment_cancel.html')
