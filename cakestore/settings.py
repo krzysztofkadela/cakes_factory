@@ -12,14 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from django.contrib.messages import constants as messages
+from dotenv import load_dotenv
+load_dotenv()
 
-
-# 1. Import env.py to load variables:
-try:
-    from .env import *
-except ImportError:
-    # If env.py doesn't exist (e.g., on production), handle as needed
-    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

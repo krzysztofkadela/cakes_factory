@@ -517,6 +517,7 @@ def create_checkout_session(request):
     2. Create a Stripe Checkout Session.
     3. Redirect user to the session's URL.
     """
+    stripe.api_key = settings.STRIPE_SECRET_KEY  # <-- critical
     user = request.user
     cart_items = CartItem.objects.filter(user=user)
     
