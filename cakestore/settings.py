@@ -16,7 +16,7 @@ from django.contrib.messages import constants as messages
 
 # 1. Import env.py to load variables:
 try:
-    from ..env import *
+    from .env import *
 except ImportError:
     # If env.py doesn't exist (e.g., on production), handle as needed
     pass
