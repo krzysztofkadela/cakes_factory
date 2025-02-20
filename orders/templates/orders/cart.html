@@ -64,6 +64,13 @@
     <!-- Total Price & Checkout -->
     <div class="text-end mt-4">
         <h4><strong>Total: €{{ total_price|floatformat:2 }}</strong></h4>
+
+         <!-- 1) CONTINUE SHOPPING BUTTON -->
+         <a href="{% url 'product_list' %}" class="btn btn-secondary btn-lg">
+            <i class="bi bi-arrow-left"></i> Continue Shopping
+        </a>
+
+        <!-- 2) PROCEED TO CHECKOUT BUTTON -->
         <a href="{% url 'checkout' %}" class="btn btn-success btn-lg">
             <i class="bi bi-credit-card"></i> Proceed to Checkout
         </a>
