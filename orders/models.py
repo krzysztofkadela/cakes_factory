@@ -57,6 +57,12 @@ class Order(models.Model):
     street_address2 = models.CharField(max_length=80, null=True, blank=True)
     county = models.CharField(max_length=80, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
+        # New Fields for Delivery/Pickup Date & Time
+    delivery_date = models.DateField(null=True, blank=True)  # Selectable delivery/pickup date
+    delivery_time = models.TimeField(null=True, blank=True)  # Selectable time slot
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     # Order status
     status = models.CharField(

@@ -146,6 +146,26 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /**
+ * ✅ Function to validate checkout form before submitting
+ */
+document.addEventListener("DOMContentLoaded", function () {
+    const payButton = document.getElementById("pay-with-stripe");
+    const checkoutForm = document.getElementById("checkout-form");
+
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();  // Stop default button action
+
+            if (validateCheckoutForm()) {
+                checkoutForm.submit();  // ✅ If valid, submit the form
+            }
+        });
+    } else {
+        console.error("⚠️ pay-with-stripe button or checkout-form not found in HTML.");
+    }
+});
+
+/**
  * ✅ Validates the checkout form and displays errors inline (under the fields).
  * @returns {boolean} True if valid, False if errors exist.
  */
@@ -156,65 +176,41 @@ function validateCheckoutForm() {
     document.querySelectorAll(".error-message").forEach(el => el.remove());
 
     // Get all form fields
-    const fullNameField = document.querySelector("input[name='full_name']");
-    const emailField = document.querySelector("input[name='email']");
-    const phoneField = document.querySelector("input[name='phone_number']");
-    const addressField = document.querySelector("input[name='street_address1']");
-    const cityField = document.querySelector("input[name='town_or_city']");
-    const countryField = document.querySelector("select[name='country']");
-
-    // Retrieve values (trim whitespace)
-    const fullName = fullNameField ? fullNameField.value.trim() : "";
-    const email = emailField ? emailField.value.trim() : "";
-    const phone = phoneField ? phoneField.value.trim() : "";
-    const address = addressField ? addressField.value.trim() : "";
-    const city = cityField ? cityField.value.trim() : "";
-    const country = countryField ? countryField.value.trim() : "";
+    const formFields = {
+        full_name: { field: document.querySelector("input[name='full_name']"), error: "Full Name is required." },
+        email: { field: document.querySelector("input[name='email']"), error: "Valid email address is required." },
+        phone_number: { field: document.querySelector("input[name='phone_number']"), error: "Valid phone number is required (7-15 digits)." },
+        street_address1: { field: document.querySelector("input[name='street_address1']"), error: "Street Address is required." },
+        town_or_city: { field: document.querySelector("input[name='town_or_city']"), error: "Town/City is required." },
+        country: { field: document.querySelector("select[name='country']"), error: "Country selection is required." }
+    };
 
     // Regex patterns
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[\d\s\-+()]{7,15}$/;
 
-    // ❌ 1) Full Name
-    if (!fullName) {
-        showError(fullNameField, "Full Name is required.");
-        isValid = false;
-    }
+    // Validate fields
+    for (let key in formFields) {
+        let fieldData = formFields[key];
+        let field = fieldData.field;
+        let value = field ? field.value.trim() : "";
 
-    // ❌ 2) Email
-    if (!email) {
-        showError(emailField, "Email is required.");
-        isValid = false;
-    } else if (!emailRegex.test(email)) {
-        showError(emailField, "Invalid email format. Example: user@example.com");
-        isValid = false;
-    }
+        if (!value) {
+            showError(field, fieldData.error);
+            isValid = false;
+        }
 
-    // ❌ 3) Phone Number
-    if (!phone) {
-        showError(phoneField, "Phone number is required.");
-        isValid = false;
-    } else if (!phoneRegex.test(phone)) {
-        showError(phoneField, "Invalid phone number. (Allowed: digits, spaces, +, (), -)");
-        isValid = false;
-    }
+        // Special validation for email format
+        if (key === "email" && value && !emailRegex.test(value)) {
+            showError(field, "Invalid email format. Example: user@example.com");
+            isValid = false;
+        }
 
-    // ❌ 4) Address
-    if (!address) {
-        showError(addressField, "Street Address is required.");
-        isValid = false;
-    }
-
-    // ❌ 5) City
-    if (!city) {
-        showError(cityField, "Town/City is required.");
-        isValid = false;
-    }
-
-    // ❌ 6) Country
-    if (!country) {
-        showError(countryField, "Country is required.");
-        isValid = false;
+        // Special validation for phone number
+        if (key === "phone_number" && value && !phoneRegex.test(value)) {
+            showError(field, "Invalid phone number. Allowed: digits, spaces, +, (), -");
+            isValid = false;
+        }
     }
 
     return isValid;  // ✅ Return true if no errors
@@ -230,7 +226,7 @@ function showError(field, message) {
         const errorElement = document.createElement("div");
         errorElement.className = "error-message text-danger small mt-1";
         errorElement.innerText = message;
-        field.classList.add("is-invalid");  // Bootstrap invalid styling
+        field.classList.add("is-invalid");  // ✅ Bootstrap invalid styling
         field.parentNode.appendChild(errorElement);
     }
 }

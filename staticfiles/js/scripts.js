@@ -84,3 +84,149 @@ document.addEventListener("DOMContentLoaded", function () {
         sizeDropdown.addEventListener("change", updatePrice);
     }
 });
+
+//check out validation.
+
+document.addEventListener("DOMContentLoaded", function () {
+    const payButton = document.getElementById("pay-with-stripe");
+    const checkoutForm = document.getElementById("checkout-form");
+
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();  // Prevent default button behavior
+
+            // Validate form before submitting
+            if (validateCheckoutForm()) {
+                checkoutForm.submit();  // If valid, submit the form
+            }
+        });
+    }
+});
+
+/**
+ * ✅ Function to validate checkout form before submitting
+ */
+document.addEventListener("DOMContentLoaded", function () {
+    const payButton = document.getElementById("pay-with-stripe");
+    const checkoutForm = document.getElementById("checkout-form");
+
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();  // Stop default button action
+
+            // Validate form before submitting
+            if (validateCheckoutForm()) {
+                checkoutForm.submit();  // If valid, submit the form
+            }
+        });
+    } else {
+        console.error("⚠️ Checkout form or pay button not found! Check your HTML.");
+    }
+});
+
+/**
+ * ✅ Function to validate checkout form before submitting
+ */
+document.addEventListener("DOMContentLoaded", function () {
+    const payButton = document.getElementById("pay-with-stripe");
+    const checkoutForm = document.getElementById("checkout-form");
+
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();  // Stop default button action
+
+            const isValid = validateCheckoutForm();
+            if (isValid) {
+                checkoutForm.submit();
+            }
+        });
+    } else {
+        console.error("⚠️ pay-with-stripe button or checkout-form not found in HTML.");
+    }
+});
+
+/**
+ * ✅ Function to validate checkout form before submitting
+ */
+document.addEventListener("DOMContentLoaded", function () {
+    const payButton = document.getElementById("pay-with-stripe");
+    const checkoutForm = document.getElementById("checkout-form");
+
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();  // Stop default button action
+
+            if (validateCheckoutForm()) {
+                checkoutForm.submit();  // ✅ If valid, submit the form
+            }
+        });
+    } else {
+        console.error("⚠️ pay-with-stripe button or checkout-form not found in HTML.");
+    }
+});
+
+/**
+ * ✅ Validates the checkout form and displays errors inline (under the fields).
+ * @returns {boolean} True if valid, False if errors exist.
+ */
+function validateCheckoutForm() {
+    let isValid = true;  // Assume form is valid initially
+
+    // Reset previous error messages
+    document.querySelectorAll(".error-message").forEach(el => el.remove());
+
+    // Get all form fields
+    const formFields = {
+        full_name: { field: document.querySelector("input[name='full_name']"), error: "Full Name is required." },
+        email: { field: document.querySelector("input[name='email']"), error: "Valid email address is required." },
+        phone_number: { field: document.querySelector("input[name='phone_number']"), error: "Valid phone number is required (7-15 digits)." },
+        street_address1: { field: document.querySelector("input[name='street_address1']"), error: "Street Address is required." },
+        town_or_city: { field: document.querySelector("input[name='town_or_city']"), error: "Town/City is required." },
+        country: { field: document.querySelector("select[name='country']"), error: "Country selection is required." }
+    };
+
+    // Regex patterns
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[\d\s\-+()]{7,15}$/;
+
+    // Validate fields
+    for (let key in formFields) {
+        let fieldData = formFields[key];
+        let field = fieldData.field;
+        let value = field ? field.value.trim() : "";
+
+        if (!value) {
+            showError(field, fieldData.error);
+            isValid = false;
+        }
+
+        // Special validation for email format
+        if (key === "email" && value && !emailRegex.test(value)) {
+            showError(field, "Invalid email format. Example: user@example.com");
+            isValid = false;
+        }
+
+        // Special validation for phone number
+        if (key === "phone_number" && value && !phoneRegex.test(value)) {
+            showError(field, "Invalid phone number. Allowed: digits, spaces, +, (), -");
+            isValid = false;
+        }
+    }
+
+    return isValid;  // ✅ Return true if no errors
+}
+
+/**
+ * ✅ Displays an inline error message below the input field.
+ * @param {HTMLElement} field - The form input/select element.
+ * @param {string} message - The error message to display.
+ */
+function showError(field, message) {
+    if (field) {
+        const errorElement = document.createElement("div");
+        errorElement.className = "error-message text-danger small mt-1";
+        errorElement.innerText = message;
+        field.classList.add("is-invalid");  // ✅ Bootstrap invalid styling
+        field.parentNode.appendChild(errorElement);
+    }
+}

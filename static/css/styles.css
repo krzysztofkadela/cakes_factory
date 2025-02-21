@@ -55,4 +55,15 @@ body {
 .alert {
   opacity: 0.95;
 }
+/* Checkout Form Enhancements */
+.form-control.is-invalid {
+  border-color: #dc3545;
+  background-image: none;
+}
 
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 5px;
+}
