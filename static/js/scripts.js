@@ -84,3 +84,47 @@ document.addEventListener("DOMContentLoaded", function () {
         sizeDropdown.addEventListener("change", updatePrice);
     }
 });
+
+//check out validation.
+
+document.addEventListener("DOMContentLoaded", function() {
+    const checkoutForm = document.getElementById("checkout-form");
+    const stripeButton = document.getElementById("pay-with-stripe");
+
+    if (checkoutForm && stripeButton) {
+        checkoutForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            // Disable the button to prevent multiple clicks
+            stripeButton.disabled = true;
+
+            // Send form data via AJAX
+            fetch("/create-checkout-session/", {
+                method: "POST",
+                body: new FormData(checkoutForm),
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Error: " + data.error);
+                    stripeButton.disabled = false;
+                } else {
+                    // Redirect to Stripe Checkout
+                    window.location.href = data.checkout_url;
+                }
+            })
+            .catch(error => {
+                console.error("Checkout error:", error);
+                alert("An error occurred. Please try again.");
+                stripeButton.disabled = false;
+            });
+        });
+
+        // Enable Stripe button only when the form is filled correctly
+        checkoutForm.addEventListener("input", function() {
+            let isValid = checkoutForm.checkValidity();
+            stripeButton.disabled = !isValid;
+        });
+    }
+});

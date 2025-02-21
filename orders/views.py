@@ -1,6 +1,6 @@
 import stripe
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -511,7 +511,7 @@ def clear_cart_on_logout(sender, request, user, **kwargs):
     request.session.modified = True
 
 @login_required
-def create_checkout_session(request):
+def create_checkout_sessionold(request):
     """
     1. Gather the user's cart items and total.
     2. Create a Stripe Checkout Session.
@@ -565,3 +565,74 @@ def payment_success(request):
 def payment_cancel(request):
     # Just show a "Payment canceled" message, let them retry
     return render(request, 'payment_cancel.html')
+
+@require_POST
+def create_checkout_session(request):
+    """
+    Validates billing details, creates an order, and redirects to Stripe Checkout.
+    """
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    # Parse the submitted form data
+    form = OrderForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({"error": "Invalid shipping/billing details. Please check your input."}, status=400)
+
+    # Save the order but don't commit yet
+    new_order = form.save(commit=False)
+    if request.user.is_authenticated:
+        new_order.user = request.user
+    new_order.save()
+
+    # Create order items
+    cart_items = CartItem.objects.filter(user=request.user) if request.user.is_authenticated else request.session.get("cart", {}).values()
+    line_items = []
+
+    for item in cart_items:
+        if isinstance(item, CartItem):
+            product = item.product
+            quantity = item.quantity
+            price = item.adjusted_price
+        else:
+            product = Product.objects.get(id=item["product_id"])
+            quantity = item["quantity"]
+            price = float(item["price"])
+
+        OrderItem.objects.create(
+            order=new_order,
+            product=product,
+            quantity=quantity,
+            price_each=price
+        )
+
+        line_items.append({
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {
+                    'name': product.name,
+                },
+                'unit_amount': int(price * 100),
+            },
+            'quantity': quantity,
+        })
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=request.build_absolute_uri(reverse('payment_success')),
+            cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
+        )
+
+        # Clear cart after successful order placement
+        if request.user.is_authenticated:
+            CartItem.objects.filter(user=request.user).delete()
+        else:
+            request.session["cart"] = {}
+            request.session.modified = True
+
+        return JsonResponse({"checkout_url": checkout_session.url})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

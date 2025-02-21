@@ -4,7 +4,6 @@ from .views import (
     custom_order, cart_update, create_checkout_session,
     payment_success, payment_cancel
 )
-from . import views
 
 urlpatterns = [
     path("cart/add/<int:product_id>/", cart_add, name="cart_add"),
