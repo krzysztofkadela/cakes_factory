@@ -29,6 +29,10 @@ SECRET_KEY = 'django-insecure-=1a9@w+!hv)4rz^d_t(pf&61%r+(_x73cuna&$nj(2yu3v1ly6
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 
+# Free delivery threshold - Set this value to determine when free shipping applies
+FREE_DELIVERY_THRESHOLD = 50.00  # Example: Free shipping for orders over €50
+STANDARD_DELIVERY_CHARGE = 5.00  # Example: Standard delivery fee
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
