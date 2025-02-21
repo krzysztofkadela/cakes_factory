@@ -1,15 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Checkout - Cake Factory{% endblock %}
-
 {% block content %}
 <div class="container">
     <h2 class="mb-4">Checkout</h2>
     
     <div class="row">
-        <!-- Left Column: Checkout Form -->
+        <!-- Left Column: Shipping & Billing Form -->
         <div class="col-md-6">
             <h4>Shipping & Billing Details</h4>
-            <form id="checkout-form" method="POST">
+            <form id="checkout-form" method="POST" action="{% url 'create_checkout_session' %}">
                 {% csrf_token %}
                 {{ form.as_p }}
 
@@ -21,11 +20,6 @@
                     </label>
                 </div>
                 {% endif %}
-
-                <!-- PLACE ORDER BUTTON -->
-                <button type="submit" class="btn btn-primary mt-3">
-                    <i class="bi bi-credit-card me-1"></i> Place Order
-                </button>
             </form>
         </div>
         
@@ -59,9 +53,9 @@
                 <strong>Total: €{{ total_price|floatformat:2 }}</strong>
             </div>
 
-            <!-- PAY WITH STRIPE BUTTON (Initially Disabled) -->
+            <!-- ✅ SINGLE BUTTON - Validate & Pay with Stripe -->
             <div class="mt-4 text-end">
-                <button id="pay-with-stripe" class="btn btn-success btn-lg" disabled>
+                <button id="pay-with-stripe" class="btn btn-success btn-lg">
                     <i class="bi bi-credit-card"></i> Pay with Stripe
                 </button>
             </div>
@@ -73,3 +67,5 @@
         </div>
     </div>
 </div>
+
+{% endblock %}

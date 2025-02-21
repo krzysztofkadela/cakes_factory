@@ -87,44 +87,87 @@ document.addEventListener("DOMContentLoaded", function () {
 
 //check out validation.
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
+    const payButton = document.getElementById("pay-with-stripe");
     const checkoutForm = document.getElementById("checkout-form");
-    const stripeButton = document.getElementById("pay-with-stripe");
 
-    if (checkoutForm && stripeButton) {
-        checkoutForm.addEventListener("submit", function(event) {
-            event.preventDefault();
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();  // Prevent default button behavior
 
-            // Disable the button to prevent multiple clicks
-            stripeButton.disabled = true;
-
-            // Send form data via AJAX
-            fetch("/create-checkout-session/", {
-                method: "POST",
-                body: new FormData(checkoutForm),
-                headers: { "X-Requested-With": "XMLHttpRequest" }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert("Error: " + data.error);
-                    stripeButton.disabled = false;
-                } else {
-                    // Redirect to Stripe Checkout
-                    window.location.href = data.checkout_url;
-                }
-            })
-            .catch(error => {
-                console.error("Checkout error:", error);
-                alert("An error occurred. Please try again.");
-                stripeButton.disabled = false;
-            });
-        });
-
-        // Enable Stripe button only when the form is filled correctly
-        checkoutForm.addEventListener("input", function() {
-            let isValid = checkoutForm.checkValidity();
-            stripeButton.disabled = !isValid;
+            // Validate form before submitting
+            if (validateCheckoutForm()) {
+                checkoutForm.submit();  // If valid, submit the form
+            }
         });
     }
 });
+
+/**
+ * ✅ Function to validate checkout form before submitting
+ */
+document.addEventListener("DOMContentLoaded", function () {
+    const payButton = document.getElementById("pay-with-stripe");
+    const checkoutForm = document.getElementById("checkout-form");
+
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();  // Stop default button action
+
+            // Validate form before submitting
+            if (validateCheckoutForm()) {
+                checkoutForm.submit();  // If valid, submit the form
+            }
+        });
+    } else {
+        console.error("⚠️ Checkout form or pay button not found! Check your HTML.");
+    }
+});
+
+/**
+ * ✅ Function to validate checkout form before submitting
+ */
+function validateCheckoutForm() {
+    let isValid = true;
+    let errorMessage = "";
+
+    // Ensure fields exist before accessing them
+    const fullName = document.querySelector("input[name='full_name']")?.value.trim() || "";
+    const email = document.querySelector("input[name='email']")?.value.trim() || "";
+    const phone = document.querySelector("input[name='phone_number']")?.value.trim() || "";
+    const address = document.querySelector("input[name='street_address1']")?.value.trim() || "";
+    const city = document.querySelector("input[name='town_or_city']")?.value.trim() || "";
+    const country = document.querySelector("select[name='country']")?.value.trim() || "";
+
+    // Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Phone validation regex (allows numbers, spaces, and dashes)
+    const phoneRegex = /^[\d\s\-+()]{7,15}$/;
+
+    // ✅ Check required fields
+    if (!fullName || !email || !phone || !address || !city || !country) {
+        isValid = false;
+        errorMessage += "❌ Please fill out all required fields.\n";
+    }
+
+    // ✅ Check email format
+    if (!emailRegex.test(email)) {
+        isValid = false;
+        errorMessage += "❌ Please enter a valid email address.\n";
+    }
+
+    // ✅ Check phone number format
+    if (!phoneRegex.test(phone)) {
+        isValid = false;
+        errorMessage += "❌ Please enter a valid phone number (digits only).\n";
+    }
+
+    // ✅ Show error messages if validation fails
+    if (!isValid) {
+        alert(errorMessage);  // Show alert with errors
+        return false;  // Stop form submission
+    }
+
+    return true;  // Form is valid, proceed
+}
