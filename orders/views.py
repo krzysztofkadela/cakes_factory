@@ -1,21 +1,30 @@
 import stripe
 from decimal import Decimal
 from django.conf import settings
+
+# Django utilities
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.dispatch import receiver
+
+# Django authentication
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+
+# Django shortcuts & utilities
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User 
-from django.contrib.auth.signals import user_logged_in
-from django.contrib.auth.signals import user_logged_out
-from django.dispatch import receiver
+
+# Models & Forms
 from .models import CartItem, Order, OrderItem
-from products.models import Product, Size
 from .forms import CustomOrderForm, OrderForm
-from django.http import JsonResponse
+from products.models import Product, Size
+
+# Webhook Handler
+from .webhook_handler import StripeWH_Handler  # ✅ Import webhook handler
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -451,79 +460,6 @@ def create_checkout_session(request):
     except stripe.error.StripeError as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-@csrf_exempt  # ✅ Allow CSRF exceptions for Stripe handling
-@require_POST
-def create_checkout_sessionold(request):
-    """
-    Validates billing details, creates an order, and redirects to Stripe Checkout.
-    """
-    form = OrderForm(request.POST)
-
-    if not form.is_valid():
-        return JsonResponse({
-            "error": "Invalid billing details. Please check your input.",
-            "form_errors": form.errors  # ✅ Return detailed form validation errors
-        }, status=400)
-
-    # ✅ Save the order
-    new_order = form.save(commit=False)
-    if request.user.is_authenticated:
-        new_order.user = request.user
-    new_order.save()
-
-    # ✅ Fetch cart items
-    cart_items = CartItem.objects.filter(user=request.user) if request.user.is_authenticated else request.session.get("cart", {}).values()
-    line_items = []
-
-    for item in cart_items:
-        if isinstance(item, CartItem):
-            product = item.product
-            quantity = item.quantity
-            price = Decimal(item.adjusted_price)  # ✅ Ensure Decimal
-        else:
-            product = Product.objects.get(id=item["product_id"])
-            quantity = item["quantity"]
-            price = Decimal(item["price"])  # ✅ Convert float to Decimal
-
-        OrderItem.objects.create(
-            order=new_order,
-            product=product,
-            quantity=quantity,
-            price_each=price
-        )
-
-        line_items.append({
-            'price_data': {
-                'currency': 'eur',
-                'product_data': {
-                    'name': product.name,
-                },
-                'unit_amount': int(price * 100),  # ✅ Convert to cents
-            },
-            'quantity': quantity,
-        })
-
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=line_items,
-            mode='payment',
-            success_url=request.build_absolute_uri(reverse('payment_success')),
-            cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
-        )
-
-        # ✅ Clear cart after successful order placement
-        if request.user.is_authenticated:
-            CartItem.objects.filter(user=request.user).delete()
-        else:
-            request.session["cart"] = {}
-            request.session.modified = True
-
-        return JsonResponse({"checkout_url": checkout_session.url})
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
 
 def payment_success(request):
     """Renders the success page after payment."""
@@ -532,3 +468,34 @@ def payment_success(request):
 def payment_cancel(request):
     """Renders the cancel page if the user cancels payment."""
     return render(request, "orders/payment_cancel.html")
+
+# Webhook:
+
+@csrf_exempt
+def stripe_webhook(request):
+    """Listen for Stripe webhooks and pass them to the handler."""
+    payload = request.body
+    sig_header = request.headers.get("Stripe-Signature")
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+
+    # Initialize webhook handler
+    handler = StripeWH_Handler(request)
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except ValueError as e:
+        return HttpResponse(status=400)  # Invalid payload
+    except stripe.error.SignatureVerificationError as e:
+        return HttpResponse(status=400)  # Invalid signature
+
+    # ✅ Map event types to specific handler functions
+    event_map = {
+        "checkout.session.completed": handler.handle_checkout_session_completed,
+    }
+
+    # Get the event handler, or use the default handler
+    event_handler = event_map.get(event["type"], handler.handle_event)
+
+    # Process the event
+    response = event_handler(event)
+    return response

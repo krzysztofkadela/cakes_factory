@@ -1,21 +1,23 @@
 from django.urls import path
-from .views import (
-    cart_add, cart_view, cart_remove, checkout, order_history,
-    custom_order, cart_update, create_checkout_session,
-    payment_success, payment_cancel
-)
+from . import views, webhook  # ✅ Importing views and webhooks correctly
 
 urlpatterns = [
-    path("cart/add/<int:product_id>/", cart_add, name="cart_add"),
-    path("cart/", cart_view, name="cart_view"),
-    path("cart/update/<int:product_id>/<int:size_id>/", cart_update, name="cart_update"),
-    path("cart/remove/<int:product_id>/<int:size_id>/", cart_remove, name="cart_remove"),
-    path("checkout/", checkout, name="checkout"),
-    path("orders/", order_history, name="order_history"),
-    path("custom_order/<int:product_id>/", custom_order, name="custom_order"),
+    # Cart Management
+    path("cart/add/<int:product_id>/", views.cart_add, name="cart_add"),
+    path("cart/", views.cart_view, name="cart_view"),
+    path("cart/update/<int:product_id>/<int:size_id>/", views.cart_update, name="cart_update"),
+    path("cart/remove/<int:product_id>/<int:size_id>/", views.cart_remove, name="cart_remove"),
 
-    # Stripe checkout URLs
-    path("create-checkout-session/", create_checkout_session, name="create_checkout_session"),
-    path("success/", payment_success, name="payment_success"),
-    path("cancel/", payment_cancel, name="payment_cancel"),
+    # Checkout & Orders
+    path("checkout/", views.checkout, name="checkout"),
+    path("orders/", views.order_history, name="order_history"),
+    path("custom_order/<int:product_id>/", views.custom_order, name="custom_order"),
+
+    # Stripe Checkout & Webhooks
+    path("create-checkout-session/", views.create_checkout_session, name="create_checkout_session"),
+    path("success/", views.payment_success, name="payment_success"),
+    path("cancel/", views.payment_cancel, name="payment_cancel"),
+
+    # ✅ Secure Stripe Webhook
+    path("webhook/", webhook.webhook, name="stripe_webhook"),
 ]
