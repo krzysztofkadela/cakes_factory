@@ -11,7 +11,7 @@ class CustomOrderForm(forms.Form):
         required=True,
     )
     
-class OrderForm(forms.ModelForm):
+class OrderFormold(forms.ModelForm):
     """Order form with delivery date & time selection."""
 
     class Meta:
@@ -73,7 +73,7 @@ class OrderForm(forms.ModelForm):
 
         return delivery_date
 
-    def clean_delivery_time(self):
+    def clean_delivery_timeold(self):
         """Ensure the delivery time is within store hours."""
         delivery_time = self.cleaned_data.get("delivery_time")
 
@@ -92,22 +92,26 @@ class OrderForm(forms.ModelForm):
 
         return delivery_time
 
-    @staticmethod
-    def get_time_slots():
-        """Generate half-hourly time slots from 9 AM to 6 PM."""
-        time_slots = [
-            (datetime.time(hour, minute).strftime("%H:%M"), datetime.time(hour, minute).strftime("%I:%M %p"))
-            for hour in range(9, 18) for minute in (0, 30)
-        ]
-        return time_slots if time_slots else [("", "No available time slots")]  # ✅ Always returns a valid list
-class OrderFormold(forms.ModelForm):
-    """Order form with delivery date & time selection."""
+def clean_delivery_time(self):
+    """Ensure the delivery time is within store hours."""
+    delivery_time = self.cleaned_data.get("delivery_time")
 
-    delivery_time = forms.ChoiceField(
-        choices=[],
-        required=True,
-        widget=forms.Select(attrs={"class": "form-select"}),
-    )  # ✅ Properly define `ChoiceField` for delivery time slots
+    # Convert time object to string if it's a datetime.time object
+    if isinstance(delivery_time, datetime.time):
+        delivery_time = delivery_time.strftime("%H:%M")  # Convert time to HH:MM string
+
+    # Define valid time slots (store open from 9:00 AM to 6:00 PM)
+    valid_times = [
+        datetime.time(hour, minute).strftime("%H:%M")
+        for hour in range(9, 18) for minute in (0, 30)
+    ]
+
+    if delivery_time and delivery_time not in valid_times:
+        raise forms.ValidationError("Please select a valid time slot within store hours (9 AM - 6 PM).")
+
+    return delivery_time
+class OrderForm(forms.ModelForm):
+    """Order form with delivery date & time selection."""
 
     class Meta:
         model = Order
@@ -115,7 +119,7 @@ class OrderFormold(forms.ModelForm):
             "full_name", "email", "phone_number",
             "street_address1", "street_address2",
             "town_or_city", "postcode", "country", "county",
-            "delivery_date", "delivery_time",  # ✅ New fields
+            "delivery_date", "delivery_time"  # ✅ New fields
         )
 
     def __init__(self, *args, **kwargs):
@@ -145,14 +149,14 @@ class OrderFormold(forms.ModelForm):
             })
             self.fields[field].label = False  # Hide default labels
 
+        # ✅ Ensure `get_time_slots()` exists before calling it!
+        self.fields["delivery_time"].widget = forms.Select(choices=self.get_time_slots())
+
         # Set date picker limits
         today = timezone.localdate()
         self.fields["delivery_date"].widget = forms.DateInput(
             attrs={"type": "date", "min": today.strftime("%Y-%m-%d")}
         )
-
-        # Set available time slots dynamically
-        self.fields["delivery_time"].choices = self.get_time_slots()
 
     def clean_delivery_date(self):
         """Ensure the delivery date is in the future."""
@@ -165,21 +169,39 @@ class OrderFormold(forms.ModelForm):
         return delivery_date
 
     def clean_delivery_time(self):
-        """Ensure the selected time slot is valid."""
+        """Ensure the delivery time is within store hours."""
         delivery_time = self.cleaned_data.get("delivery_time")
 
-        # Validate only if delivery_time is selected
-        if delivery_time:
-            valid_times = {slot[0] for slot in self.get_time_slots()}  # Get valid time strings
-            if delivery_time not in valid_times:
-                raise forms.ValidationError("Invalid time slot. Please select from available options.")
+        # Convert time object to string if it's a datetime.time object
+        if isinstance(delivery_time, datetime.time):
+            delivery_time = delivery_time.strftime("%H:%M")  # Convert time to HH:MM string
+
+        # Define valid time slots (store open from 9:00 AM to 6:00 PM)
+        valid_times = [
+            datetime.time(hour, minute).strftime("%H:%M")
+            for hour in range(9, 18) for minute in (0, 30)
+        ]
+
+        if delivery_time and delivery_time not in valid_times:
+            raise forms.ValidationError("Please select a valid time slot within store hours (9 AM - 6 PM).")
 
         return delivery_time
 
     @staticmethod
     def get_time_slots():
-        """Generate half-hourly time slots from 9 AM to 6 PM."""
+        """✅ Generate half-hourly time slots from 9 AM to 6 PM."""
         time_slots = [
             (datetime.time(hour, minute).strftime("%H:%M"), datetime.time(hour, minute).strftime("%I:%M %p"))
             for hour in range(9, 18) for minute in (0, 30)
         ]
+        return [("", "Select Time Slot")] + time_slots  # Include a default option
+
+@staticmethod
+def get_time_slotsold():
+    """Generate half-hourly time slots from 9 AM to 6 PM."""
+    time_slots = [
+        (datetime.time(hour, minute).strftime("%H:%M"), datetime.time(hour, minute).strftime("%I:%M %p"))
+        for hour in range(9, 18) for minute in (0, 30)
+    ]
+    return time_slots if time_slots else [("", "No available time slots")]  # ✅ Always returns a valid list
+    
