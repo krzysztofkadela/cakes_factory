@@ -377,33 +377,46 @@ def clear_cart_on_logout(sender, request, user, **kwargs):
 
 @csrf_exempt
 @require_POST
-def create_checkout_session(request):
+def create_checkout_sessionold(request):
     """
     Validates billing details, creates an order, and redirects to Stripe Checkout.
     """
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-
-    # ✅ Validate the OrderForm
     form = OrderForm(request.POST)
     if not form.is_valid():
         return JsonResponse({
             "error": "Invalid billing details. Please check your input.",
-            "form_errors": form.errors  # ✅ Return form errors for debugging
+            "form_errors": form.errors
         }, status=400)
 
-    # ✅ Save the order (but don't commit yet)
+    # Save the order
     new_order = form.save(commit=False)
     if request.user.is_authenticated:
         new_order.user = request.user
     new_order.save()
 
-    # ✅ Fetch cart items
-    cart_items = CartItem.objects.filter(user=request.user) if request.user.is_authenticated else request.session.get("cart", {}).values()
+    # Fetch cart items
+    if request.user.is_authenticated:
+        cart_items = CartItem.objects.filter(user=request.user)
+    else:
+        session_cart = request.session.get("cart", {})
+        cart_items = []
+        # Iterate over items so we can extract product_id and size_id from the key
+        for key, val in session_cart.items():
+            if "_" in key:
+                product_id, size_id = key.split("_", 1)
+            else:
+                product_id = key
+                size_id = None
+            # Copy the dict and add product_id and size_id for consistency
+            item = val.copy()
+            item["product_id"] = product_id
+            item["size_id"] = size_id
+            cart_items.append(item)
 
     if not cart_items:
         return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
 
-    # ✅ Create Stripe line items
+    # Create Stripe line items and store order items in the database
     line_items = []
     for item in cart_items:
         try:
@@ -416,7 +429,6 @@ def create_checkout_session(request):
                 quantity = item["quantity"]
                 price = float(item["price"])
 
-            # ✅ Store order items in the database
             OrderItem.objects.create(
                 order=new_order,
                 product=product,
@@ -437,7 +449,6 @@ def create_checkout_session(request):
         except Product.DoesNotExist:
             return JsonResponse({"error": f"Product with ID {item['product_id']} not found."}, status=400)
 
-    # ✅ Create Stripe Checkout session
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -447,14 +458,101 @@ def create_checkout_session(request):
             cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
         )
 
-        # ✅ Clear cart after successful order placement
+        # Clear the cart after successful order placement
         if request.user.is_authenticated:
             CartItem.objects.filter(user=request.user).delete()
         else:
             request.session["cart"] = {}
             request.session.modified = True
 
-        # ✅ **Redirect user to Stripe Checkout instead of returning JSON**
+        return redirect(checkout_session.url)
+    except stripe.error.StripeError as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@require_POST
+def create_checkout_session(request):
+    """
+    Handles order creation and initiates a Stripe Checkout session.
+    """
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    # ✅ Validate Order Form
+    form = OrderForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({
+            "error": "Invalid billing details. Please check your input.",
+            "form_errors": form.errors
+        }, status=400)
+
+    # ✅ Create Order in Database
+    new_order = form.save(commit=False)
+    if request.user.is_authenticated:
+        new_order.user = request.user
+    new_order.save()
+
+    # ✅ Fetch Cart Items
+    if request.user.is_authenticated:
+        cart_items = CartItem.objects.filter(user=request.user)
+    else:
+        cart_items = request.session.get("cart", {}).values()
+
+    if not cart_items:
+        return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
+
+    # ✅ Create Stripe Line Items
+    line_items = []
+    for item in cart_items:
+        try:
+            if isinstance(item, CartItem):
+                product = item.product
+                quantity = item.quantity
+                price = item.adjusted_price
+            else:
+                product_id = item.get("product_id")  # Prevent KeyError
+                if not product_id:
+                    return JsonResponse({"error": "Invalid cart item: Missing product_id"}, status=400)
+
+                product = Product.objects.get(id=product_id)
+                quantity = item["quantity"]
+                price = float(item["price"])
+
+            # ✅ Store Order Items in Database
+            OrderItem.objects.create(
+                order=new_order,
+                product=product,
+                quantity=quantity,
+                price_each=price
+            )
+
+            # ✅ Add to Stripe Checkout Session
+            line_items.append({
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': product.name,
+                    },
+                    'unit_amount': int(price * 100),
+                },
+                'quantity': quantity,
+            })
+        except Product.DoesNotExist:
+            return JsonResponse({"error": f"Product with ID {product_id} not found."}, status=400)
+
+    # ✅ Create Stripe Checkout Session (THIS IS WHERE IT GOES)
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=request.build_absolute_uri(reverse('payment_success')),
+            cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
+            metadata={"order_number": new_order.order_number},  # ✅ Order tracking
+        )
+
+        # 🚨 Do NOT clear the cart here; we do it in webhooks!
+
+        #return JsonResponse({"checkout_url": checkout_session.url})
         return redirect(checkout_session.url)
 
     except stripe.error.StripeError as e:
