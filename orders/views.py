@@ -377,10 +377,13 @@ def clear_cart_on_logout(sender, request, user, **kwargs):
 
 @csrf_exempt
 @require_POST
-def create_checkout_sessionold(request):
+def create_checkout_session(request):
     """
-    Validates billing details, creates an order, and redirects to Stripe Checkout.
+    Handles order creation and initiates a Stripe Checkout session.
     """
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    # ✅ Validate Order Form
     form = OrderForm(request.POST)
     if not form.is_valid():
         return JsonResponse({
@@ -388,35 +391,42 @@ def create_checkout_sessionold(request):
             "form_errors": form.errors
         }, status=400)
 
-    # Save the order
+    # ✅ Create Order in Database
     new_order = form.save(commit=False)
     if request.user.is_authenticated:
         new_order.user = request.user
     new_order.save()
 
-    # Fetch cart items
+    # ✅ Debugging Log: Check if order_number exists
+    print(f"✅ Order Created: {new_order.order_number}")
+
+    # ✅ Fetch Cart Items
+    cart_items = []
     if request.user.is_authenticated:
-        cart_items = CartItem.objects.filter(user=request.user)
+        cart_items = list(CartItem.objects.filter(user=request.user))
     else:
         session_cart = request.session.get("cart", {})
-        cart_items = []
-        # Iterate over items so we can extract product_id and size_id from the key
-        for key, val in session_cart.items():
-            if "_" in key:
-                product_id, size_id = key.split("_", 1)
-            else:
-                product_id = key
-                size_id = None
-            # Copy the dict and add product_id and size_id for consistency
-            item = val.copy()
-            item["product_id"] = product_id
-            item["size_id"] = size_id
-            cart_items.append(item)
+        if not session_cart:
+            return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
+
+        for item in session_cart.values():
+            product_id = item.get("product_id")  
+            if not product_id:
+                return JsonResponse({"error": "Invalid cart item: Missing product_id"}, status=400)
+            try:
+                product = Product.objects.get(id=product_id)
+                cart_items.append({
+                    "product": product,
+                    "quantity": item.get("quantity", 1),
+                    "price": float(item.get("price", 0))
+                })
+            except Product.DoesNotExist:
+                return JsonResponse({"error": f"Product with ID {product_id} not found."}, status=400)
 
     if not cart_items:
         return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
 
-    # Create Stripe line items and store order items in the database
+    # ✅ Create Stripe Line Items
     line_items = []
     for item in cart_items:
         try:
@@ -425,10 +435,11 @@ def create_checkout_sessionold(request):
                 quantity = item.quantity
                 price = item.adjusted_price
             else:
-                product = get_object_or_404(Product, id=item["product_id"])
+                product = item["product"]
                 quantity = item["quantity"]
-                price = float(item["price"])
+                price = item["price"]
 
+            # ✅ Store Order Items in Database
             OrderItem.objects.create(
                 order=new_order,
                 product=product,
@@ -436,19 +447,30 @@ def create_checkout_sessionold(request):
                 price_each=price
             )
 
+            # ✅ Add to Stripe Checkout Session
             line_items.append({
                 'price_data': {
                     'currency': 'eur',
                     'product_data': {
                         'name': product.name,
                     },
-                    'unit_amount': int(price * 100),
+                    'unit_amount': int(price * 100),  # Convert to cents
                 },
                 'quantity': quantity,
             })
         except Product.DoesNotExist:
-            return JsonResponse({"error": f"Product with ID {item['product_id']} not found."}, status=400)
+            return JsonResponse({"error": f"Product {product.id} not found."}, status=400)
 
+    # ✅ Ensure order_number is included in metadata
+    metadata = {
+        "order_number": str(new_order.order_number),  # Convert to string to avoid issues
+        "customer_email": new_order.email if new_order.email else "unknown@example.com"
+    }
+
+    # ✅ Debugging Log: Check metadata before sending to Stripe
+    print(f"✅ Stripe Metadata: {metadata}")
+
+    # ✅ Create Stripe Checkout Session
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -456,22 +478,25 @@ def create_checkout_sessionold(request):
             mode='payment',
             success_url=request.build_absolute_uri(reverse('payment_success')),
             cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
+            metadata=metadata,  # ✅ Attach metadata to checkout session
+            payment_intent_data={  
+                "metadata": metadata  # ✅ Attach metadata to payment intent
+            },
         )
 
-        # Clear the cart after successful order placement
-        if request.user.is_authenticated:
-            CartItem.objects.filter(user=request.user).delete()
-        else:
-            request.session["cart"] = {}
-            request.session.modified = True
+        # 🚨 Ensure metadata is correctly attached by printing Stripe session response
+        print(f"✅ Stripe Checkout Session Created: {checkout_session.id}")
+        print(f"✅ Stripe Checkout Session Metadata: {checkout_session.metadata}")
 
-        return redirect(checkout_session.url)
+        return redirect(checkout_session.url)  # ✅ Redirect to Stripe Checkout URL
+
     except stripe.error.StripeError as e:
+        print(f"❌ Stripe Error: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
 @require_POST
-def create_checkout_session(request):
+def create_checkout_sessionold(request):
     """
     Handles order creation and initiates a Stripe Checkout session.
     """
