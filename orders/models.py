@@ -3,6 +3,8 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Sum, F
 from products.models import Product, Size
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 class CartItem(models.Model):
     user = models.ForeignKey(
@@ -45,6 +47,15 @@ class Order(models.Model):
         ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
     ]
+    
+    # 🆕 User field
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,   # or on_delete=models.CASCADE if you prefer
+        null=True,
+        blank=True,
+        related_name="orders"
+    )
 
     order_number = models.CharField(max_length=32, null=False, editable=False, unique=True)
     full_name = models.CharField(max_length=50, null=False, blank=False)
@@ -57,9 +68,10 @@ class Order(models.Model):
     street_address2 = models.CharField(max_length=80, null=True, blank=True)
     county = models.CharField(max_length=80, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
-        # New Fields for Delivery/Pickup Date & Time
-    delivery_date = models.DateField(null=True, blank=True)  # Selectable delivery/pickup date
-    delivery_time = models.TimeField(null=True, blank=True)  # Selectable time slot
+
+    # 🆕 Delivery/Pickup Date & Time
+    delivery_date = models.DateField(null=True, blank=True)
+    delivery_time = models.TimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
