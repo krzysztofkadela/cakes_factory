@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const basePrice = parseFloat(priceDisplay.dataset.basePrice);
         const sizeAdjustments = { "Small": 0, "Large": 20, "X-large": 40 };
 
-        sizeDropdown.addEventListener("change", function () {
+        function updatePrice() {
             const selectedSize = sizeDropdown.options[sizeDropdown.selectedIndex].text.trim();
             const extraCost = sizeAdjustments[selectedSize] || 0;
             const newPrice = basePrice + extraCost;
@@ -76,7 +76,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!isNaN(newPrice)) {
                 priceDisplay.innerText = `€${newPrice.toFixed(2)}`;
             }
-        });
+        }
+
+        sizeDropdown.addEventListener("change", updatePrice);
+        updatePrice(); // ✅ Ensure price updates on page load
     }
 });
 

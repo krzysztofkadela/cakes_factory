@@ -3,14 +3,13 @@ from django.conf import settings
 
 def cart_context(request):
     cart_items = 0
-    cart_total_price = 0.00  # ✅ Default value ensures correct formatting
+    cart_total_price = 0.0
 
     if request.user.is_authenticated:
-        # ✅ LOGGED-IN USER: Fetch cart from database
+        # ✅ LOGGED-IN USER: Fetch cart from the database
         cart_items_qs = CartItem.objects.filter(user=request.user)
         cart_items = sum(item.quantity for item in cart_items_qs)
-        cart_total_price = sum(item.line_total for item in cart_items_qs)  # ✅ Uses `line_total`
-
+        cart_total_price = sum(item.line_total for item in cart_items_qs)  # ✅ Uses line_total for correct pricing
     else:
         # ✅ GUEST USER: Use session cart
         session_cart = request.session.get("cart", {})
@@ -37,9 +36,9 @@ def cart_context(request):
                 cart_total_price += subtotal
 
             except (Product.DoesNotExist, Size.DoesNotExist, ValueError, TypeError):
-                continue  # Skip invalid cart items
+                continue  # Skip invalid cart items to prevent errors
 
     return {
-        "cart_items": cart_items or 0,  # ✅ Always returns an integer
-        "cart_total_price": f"{cart_total_price:.2f}"  # ✅ Ensures two decimal places
+        "cart_items": cart_items or 0,  # ✅ Always return an integer
+        "cart_total_price": round(cart_total_price, 2)  # ✅ Ensure two decimal places
     }
