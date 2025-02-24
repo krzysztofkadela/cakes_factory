@@ -85,16 +85,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const payButton = document.getElementById("pay-with-stripe");
     const checkoutForm = document.getElementById("checkout-form");
 
-    if (payButton && checkoutForm) {
-        payButton.addEventListener("click", function (event) {
-            event.preventDefault(); 
+    if (checkoutForm) {  // ✅ Only run the script if the checkout form exists
+        if (payButton) {
+            payButton.addEventListener("click", function (event) {
+                event.preventDefault(); // Prevent default button behavior
 
-            if (validateCheckoutForm()) {
-                checkoutForm.submit(); 
-            }
-        });
+                if (validateCheckoutForm()) {
+                    console.log("✅ Checkout form validated! Proceeding to payment.");
+                    checkoutForm.submit(); 
+                } else {
+                    console.error("❌ Checkout form validation failed!");
+                }
+            });
+        } else {
+            console.warn("⚠️ Checkout form found, but pay-with-stripe button is missing.");
+        }
     } else {
-        console.error("⚠️ Checkout form or pay button not found!");
+        console.info("ℹ️ Checkout form not found on this page. Skipping checkout script.");
     }
 });
 
