@@ -1,4 +1,4 @@
-from .models import CartItem, Product, Size
+from .models import CartItem
 from django.conf import settings
 
 def cart_context(request):
@@ -6,39 +6,14 @@ def cart_context(request):
     cart_total_price = 0.0
 
     if request.user.is_authenticated:
-        # ✅ LOGGED-IN USER: Fetch cart from the database
+        # ✅ LOGGED-IN USER: Use database cart
         cart_items_qs = CartItem.objects.filter(user=request.user)
         cart_items = sum(item.quantity for item in cart_items_qs)
-        cart_total_price = sum(item.line_total for item in cart_items_qs)  # ✅ Uses line_total for correct pricing
+        cart_total_price = sum(item.line_total for item in cart_items_qs)
     else:
         # ✅ GUEST USER: Use session cart
         session_cart = request.session.get("cart", {})
+        cart_items = sum(item["quantity"] for item in session_cart.values())
+        cart_total_price = sum(float(item["price"]) * int(item["quantity"]) for item in session_cart.values())
 
-        for item in session_cart.values():
-            try:
-                product_id = item.get("product_id")
-                quantity = int(item.get("quantity", 1))
-                price = float(item.get("price", 0))
-
-                # ✅ Ensure product exists
-                product = Product.objects.get(id=product_id)
-
-                # ✅ Get size adjustment (if any)
-                size_id = item.get("size_id")
-                size = Size.objects.get(id=size_id) if size_id else None
-                size_adjustment = 0
-                if size and size.name in ["Large", "X-large"]:
-                    size_adjustment = 20 if size.name == "Large" else 40
-
-                # ✅ Calculate item subtotal
-                subtotal = (price + size_adjustment) * quantity
-                cart_items += quantity
-                cart_total_price += subtotal
-
-            except (Product.DoesNotExist, Size.DoesNotExist, ValueError, TypeError):
-                continue  # Skip invalid cart items to prevent errors
-
-    return {
-        "cart_items": cart_items or 0,  # ✅ Always return an integer
-        "cart_total_price": round(cart_total_price, 2)  # ✅ Ensure two decimal places
-    }
+    return {"cart_items": cart_items, "cart_total_price": cart_total_price}
