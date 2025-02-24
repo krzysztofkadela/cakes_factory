@@ -3,7 +3,6 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Sum, F
 from products.models import Product, Size
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 
 class CartItem(models.Model):
@@ -29,14 +28,16 @@ class CartItem(models.Model):
             "Large": 20,  
             "X-large": 40  
         }
-        base_price = self.product.price
+        # Assume product.price is always set; fallback is provided just in case.
+        base_price = self.product.price or 0
         size_adjustment = SIZE_PRICE_ADJUSTMENT.get(self.size.name if self.size else "Small", 0)
-        return base_price + size_adjustment  # ✅ Ensures correct pricing
+        return base_price + size_adjustment
 
     @property
     def line_total(self):
         """Total price for this cart item (quantity included)."""
-        return self.adjusted_price * self.quantity
+        # If adjusted_price somehow is None, fallback to 0.
+        return (self.adjusted_price or 0) * self.quantity
 
 
 class Order(models.Model):
@@ -48,35 +49,33 @@ class Order(models.Model):
         ("cancelled", "Cancelled"),
     ]
     
-    # 🆕 User field
     user = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,   # or on_delete=models.CASCADE if you prefer
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="orders"
     )
 
     order_number = models.CharField(max_length=32, null=False, editable=False, unique=True)
-    full_name = models.CharField(max_length=50, null=False, blank=False)
-    email = models.EmailField(max_length=254, null=False, blank=False)
-    phone_number = models.CharField(max_length=20, null=False, blank=False)
-    country = models.CharField(max_length=40, null=False, blank=False)
+    full_name = models.CharField(max_length=50)
+    email = models.EmailField(max_length=254)
+    phone_number = models.CharField(max_length=20)
+    country = models.CharField(max_length=40)
     postcode = models.CharField(max_length=20, null=True, blank=True)
-    town_or_city = models.CharField(max_length=40, null=False, blank=False)
-    street_address1 = models.CharField(max_length=80, null=False, blank=False)
+    town_or_city = models.CharField(max_length=40)
+    street_address1 = models.CharField(max_length=80)
     street_address2 = models.CharField(max_length=80, null=True, blank=True)
     county = models.CharField(max_length=80, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
-    # 🆕 Delivery/Pickup Date & Time
+    # Delivery/Pickup Date & Time
     delivery_date = models.DateField(null=True, blank=True)
     delivery_time = models.TimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Order status
     status = models.CharField(
         max_length=20,
         choices=ORDER_STATUS,
@@ -84,9 +83,9 @@ class Order(models.Model):
     )
 
     # Pricing fields
-    delivery_cost = models.DecimalField(max_digits=6, decimal_places=2, null=False, default=0)
-    order_total = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0)
-    grand_total = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0)
+    delivery_cost = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    order_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def _generate_order_number(self):
         """Generate a unique order number using UUID."""
@@ -96,7 +95,7 @@ class Order(models.Model):
         """Update order total when items are added or removed."""
         self.order_total = self.items.aggregate(
             total=Sum(F("quantity") * F("price_each"))
-        )["total"] or 0  # Avoid None values
+        )["total"] or 0
 
         if self.order_total < settings.FREE_DELIVERY_THRESHOLD:
             self.delivery_cost = self.order_total * (settings.STANDARD_DELIVERY_PERCENTAGE / 100)
@@ -131,19 +130,20 @@ class OrderItem(models.Model):
             "Large": 20,  
             "X-large": 40 
         }
-        base_price = self.product.price
+        base_price = self.product.price or 0
         size_adjustment = SIZE_PRICE_ADJUSTMENT.get(self.size.name if self.size else "Small", 0)
-        return base_price + size_adjustment  # ✅ Ensures correct pricing
+        return base_price + size_adjustment
 
     @property
     def line_total(self):
-        return self.price_each * self.quantity
+        # Use a fallback value (0) if price_each is None.
+        return (self.price_each or 0) * self.quantity
 
     def save(self, *args, **kwargs):
         """Ensure price_each is correctly set before saving."""
-        self.price_each = self.adjusted_price  # ✅ Always set correct price
+        self.price_each = self.adjusted_price
         super().save(*args, **kwargs)
-        self.order.update_total()  # ✅ Ensures order total is updated
+        self.order.update_total()
 
     def delete(self, *args, **kwargs):
         """Update order total on item removal."""
