@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}User Profile - Cake Factory{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">👤 My Profile</h2>
+
+    <!-- Personal Information -->
+    <div class="card mb-4">
+        <div class="card-header">Personal Information</div>
+        <div class="card-body">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+        </div>
+    </div>
+
+    <!-- Shipping Address -->
+    <div class="card mb-4">
+        <div class="card-header">Shipping Address</div>
+        <div class="card-body">
+            <p><strong>Full Name:</strong> {{ user.shipping_full_name|default:"Not provided" }}</p>
+            <p><strong>Phone:</strong> {{ user.shipping_phone|default:"Not provided" }}</p>
+            <p><strong>Address:</strong> {{ user.shipping_street_address1 }}, {{ user.shipping_street_address2 }}</p>
+            <p><strong>City:</strong> {{ user.shipping_city }}</p>
+            <p><strong>Postcode:</strong> {{ user.shipping_postcode }}</p>
+            <p><strong>Country:</strong> {{ user.shipping_country }}</p>
+        </div>
+    </div>
+
+    <!-- Billing Address -->
+    <div class="card mb-4">
+        <div class="card-header">Billing Address</div>
+        <div class="card-body">
+            <p><strong>Full Name:</strong> {{ user.billing_full_name|default:"Not provided" }}</p>
+            <p><strong>Phone:</strong> {{ user.billing_phone|default:"Not provided" }}</p>
+            <p><strong>Address:</strong> {{ user.billing_street_address1 }}, {{ user.billing_street_address2 }}</p>
+            <p><strong>City:</strong> {{ user.billing_city }}</p>
+            <p><strong>Postcode:</strong> {{ user.billing_postcode }}</p>
+            <p><strong>Country:</strong> {{ user.billing_country }}</p>
+        </div>
+    </div>
+
+    <!-- Order History -->
+    <h3 class="mb-3">🛍 Order History</h3>
+    {% if orders %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><a href="{% url 'order_detail' order.id %}">#{{ order.id }}</a></td>
+                <td>{{ order.created_at|date:"d M Y" }}</td>
+                <td>€{{ order.total_price|floatformat:2 }}</td>
+                <td>{{ order.status|title }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="alert alert-warning">No orders found.</p>
+    {% endif %}
+</div>
+{% endblock %}
