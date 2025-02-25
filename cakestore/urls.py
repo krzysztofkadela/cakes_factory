@@ -28,6 +28,7 @@ urlpatterns = [
     path("", include("home.urls")),  # Homepage URL
     path('products/', include('products.urls')),  # Products app
     path("orders/", include("orders.urls")),  # Include Orders App URLs
+    path("users/", include("users.urls")),  # Users urls
     
 ]
 
