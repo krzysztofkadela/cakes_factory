@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
+
 from .models import CartItem, Order, OrderItem
 from .forms import CustomOrderForm, OrderForm
 from products.models import Product, Size
@@ -71,6 +72,7 @@ def cart_add(request, product_id):
     messages.success(request, f"{quantity} x {product.name} added to cart!")
     return redirect("cart_view")
 
+
 def cart_view(request):
     cart_items = []
     total_price = 0
@@ -122,6 +124,7 @@ def cart_view(request):
 
     return render(request, "orders/cart.html", {"cart": cart_items, "total_price": total_price})
 
+
 def cart_remove(request, product_id, size_id=0):
     if request.user.is_authenticated:
         cart_item = CartItem.objects.filter(user=request.user, product_id=product_id, size_id=size_id).first()
@@ -143,6 +146,7 @@ def cart_remove(request, product_id, size_id=0):
 
     return redirect("cart_view")
 
+
 def checkout(request):
     """Handles order checkout, validation, and Stripe payment initiation."""
     cart_items = []
@@ -157,9 +161,9 @@ def checkout(request):
             subtotal = item.adjusted_price * item.quantity
             total_price += subtotal
             cart_items.append({
-                "product": item.product, 
+                "product": item.product,
                 "size": item.size,
-                "quantity": item.quantity, 
+                "quantity": item.quantity,
                 "price": item.adjusted_price,
                 "subtotal": subtotal
             })
@@ -203,7 +207,7 @@ def checkout(request):
             # Create order items for each cart item
             for item in cart_items:
                 OrderItem.objects.create(
-                    order=order, 
+                    order=order,
                     product=item["product"],
                     size=item.get("size"),
                     quantity=item["quantity"],
@@ -217,17 +221,19 @@ def checkout(request):
         form = OrderForm(initial={"email": request.user.email} if request.user.is_authenticated else {})
 
     return render(request, "orders/checkout.html", {
-        "form": form, 
-        "cart_items": cart_items, 
-        "total_price": total_price, 
-        "delivery_charge": delivery_charge, 
+        "form": form,
+        "cart_items": cart_items,
+        "total_price": total_price,
+        "delivery_charge": delivery_charge,
         "grand_total": grand_total
     })
+
 
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "orders/order_history.html", {"orders": orders})
+
 
 @login_required
 def custom_order(request, product_id):
@@ -254,6 +260,7 @@ def custom_order(request, product_id):
     else:
         form = CustomOrderForm()
     return render(request, "orders/custom_order.html", {"form": form, "product": product})
+
 
 def cart_update(request, product_id, size_id=0):
     new_quantity = request.POST.get("quantity")
@@ -291,6 +298,7 @@ def cart_update(request, product_id, size_id=0):
         request.session.modified = True
     return HttpResponseRedirect(reverse("cart_view"))
 
+
 @receiver(user_logged_in)
 def merge_cart_on_login(sender, request, user, **kwargs):
     cart = request.session.get("cart", {})
@@ -310,15 +318,18 @@ def merge_cart_on_login(sender, request, user, **kwargs):
         cart_item.save()
     request.session["cart"] = {}
 
+
 @receiver(user_logged_out)
 def clear_cart_on_logout(sender, request, user, **kwargs):
     request.session["cart"] = {}
     request.session.modified = True
 
+
 @require_POST
 def create_checkout_session(request):
     """
     Handles order creation and initiates a Stripe Checkout session.
+    Now includes shipping_address_collection to let users enter shipping details at Stripe.
     """
     form = OrderForm(request.POST)
     if not form.is_valid():
@@ -335,6 +346,130 @@ def create_checkout_session(request):
     # Debug log: check that order_number exists
     print(f"✅ Order Created: {new_order.order_number}")
 
+    # Gather all cart items (either DB-based or session-based)
+    cart_items = []
+    if request.user.is_authenticated:
+        cart_items = list(CartItem.objects.filter(user=request.user))
+    else:
+        session_cart = request.session.get("cart", {})
+        if not session_cart:
+            return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
+
+        for key, item in session_cart.items():
+            if "_" in key:
+                product_id, size_id = key.split("_")
+            else:
+                product_id, size_id = key, None
+            try:
+                product = Product.objects.get(id=product_id)
+                size = Size.objects.get(id=size_id) if size_id else None
+            except (Product.DoesNotExist, Size.DoesNotExist):
+                # You might consider returning a 400 here if the product or size no longer exists
+                continue
+            cart_items.append({
+                "product": product,
+                "size": size,
+                "quantity": item.get("quantity", 1),
+                "price": Decimal(item.get("price", 0))
+            })
+
+    if not cart_items:
+        return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
+
+    # Create line_items for Stripe
+    line_items = []
+    for item in cart_items:
+        try:
+            if isinstance(item, CartItem):
+                product = item.product
+                quantity = item.quantity
+                price = item.adjusted_price
+                size = item.size
+            else:
+                product = item["product"]
+                quantity = item["quantity"]
+                price = item["price"]
+                size = item.get("size")
+
+            # Store each OrderItem in the DB
+            OrderItem.objects.create(
+                order=new_order,
+                product=product,
+                size=size,
+                quantity=quantity,
+                price_each=price
+            )
+
+            line_items.append({
+                'price_data': {
+                    'currency': 'eur',  # Adjust the currency if needed
+                    'product_data': {'name': product.name},
+                    'unit_amount': int(price * 100),
+                },
+                'quantity': quantity,
+            })
+        except Product.DoesNotExist:
+            return JsonResponse({"error": f"Product {product.id} not found."}, status=400)
+
+    # Build metadata for Stripe
+    metadata = {
+        "order_number": str(new_order.order_number),
+        "customer_email": new_order.email or "unknown@example.com"
+    }
+    print(f"✅ Stripe Metadata: {metadata}")
+
+    # Attempt to create Stripe session
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=request.build_absolute_uri(reverse('payment_success')),
+            cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
+            metadata=metadata,
+            payment_intent_data={"metadata": metadata},
+            shipping_address_collection={
+                "allowed_countries": [
+                    "US", "GB", "CA", "FR", "DE", "ES", "IT"
+                    # Add or remove countries as desired
+                ]
+            },
+        )
+        print(f"✅ Stripe Checkout Session Created: {checkout_session.id}")
+        print(f"✅ Stripe Checkout Session Metadata: {checkout_session.metadata}")
+        return redirect(checkout_session.url)
+
+    except stripe.error.StripeError as e:
+        # ⚠ Best practice: return a HTTP response with an error status code
+        print(f"❌ Stripe Error: {e}")
+        return JsonResponse(
+            {"error": "There was a problem creating the Stripe Checkout Session.", "details": str(e)},
+            status=500
+        )
+
+
+@require_POST
+def create_checkout_sessionold(request):
+    """
+    Handles order creation and initiates a Stripe Checkout session.
+    Now includes shipping_address_collection to let users enter shipping details at Stripe.
+    """
+    form = OrderForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({
+            "error": "Invalid billing details. Please check your input.",
+            "form_errors": form.errors
+        }, status=400)
+
+    new_order = form.save(commit=False)
+    if request.user.is_authenticated:
+        new_order.user = request.user
+    new_order.save()
+
+    # Debug log: check that order_number exists
+    print(f"✅ Order Created: {new_order.order_number}")
+
+    # Gather all cart items (either DB-based or session-based)
     cart_items = []
     if request.user.is_authenticated:
         cart_items = list(CartItem.objects.filter(user=request.user))
@@ -362,6 +497,7 @@ def create_checkout_session(request):
     if not cart_items:
         return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
 
+    # Create line_items for Stripe
     line_items = []
     for item in cart_items:
         try:
@@ -375,7 +511,8 @@ def create_checkout_session(request):
                 quantity = item["quantity"]
                 price = item["price"]
                 size = item.get("size")
-            # Store OrderItem in database (including size if available)
+
+            # Store each OrderItem in the DB
             OrderItem.objects.create(
                 order=new_order,
                 product=product,
@@ -401,6 +538,7 @@ def create_checkout_session(request):
     print(f"✅ Stripe Metadata: {metadata}")
 
     try:
+        # Include shipping_address_collection to collect shipping details from the user
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=line_items,
@@ -409,6 +547,12 @@ def create_checkout_session(request):
             cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
             metadata=metadata,
             payment_intent_data={"metadata": metadata},
+            shipping_address_collection={
+                "allowed_countries": [
+                    "US", "GB", "CA", "FR", "DE", "ES", "IT"
+                    # Add or remove countries as desired
+                ]
+            },
         )
         print(f"✅ Stripe Checkout Session Created: {checkout_session.id}")
         print(f"✅ Stripe Checkout Session Metadata: {checkout_session.metadata}")
@@ -417,21 +561,25 @@ def create_checkout_session(request):
         print(f"❌ Stripe Error: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
+
 def payment_success(request):
     return render(request, "orders/payment_success.html")
 
+
 def payment_cancel(request):
     return render(request, "orders/payment_cancel.html")
+
 
 @csrf_exempt
 def stripe_webhook(request):
     """Listen for Stripe webhooks and pass them to the handler."""
     payload = request.body
     sig_header = request.headers.get("Stripe-Signature")
-    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+    webhook_secret = settings.STRIPE_WH_SECRET
 
     from .webhook_handler import StripeWH_Handler
     handler = StripeWH_Handler(request)
+
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
     except ValueError:
