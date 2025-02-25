@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    "django_countries",
     'crispy_forms',
     'crispy_bootstrap5',
     # The following apps are required:
@@ -119,6 +120,10 @@ SITE_ID = 1
 
 # Email Backend (For Development - Change for Production)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Use Custom Model
+
+AUTH_USER_MODEL = 'users.CustomUser'
 
 # Authentication Settings
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow both username and email for login

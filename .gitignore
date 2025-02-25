@@ -8,3 +8,5 @@ node_modules/
 .github/
 cloudinary_python.txtdb.sqlite3
 .env
+*.json
+backup*.json

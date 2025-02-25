@@ -94,6 +94,14 @@
                     {% endif %}
 
                     <!-- Cart Button -->
+                    {% if request.path == '/orders/checkout/' %}
+                    <!-- ✅ Show Total Items & Price on Checkout Page -->
+                    <span class="btn btn-dark">
+                        🛒 Cart Items: <strong>{{ cart_items|length }}</strong> | Total:
+                        <strong>€{{ cart_total_price|floatformat:2 }}</strong>
+                    </span>
+                    {% else %}
+                    <!-- ✅ Default Cart Button -->
                     <a class="btn btn-outline-dark" href="{% url 'cart_view' %}">
                         <i class="bi-cart-fill me-1"></i> Cart
                         <span id="cart-count" class="badge bg-dark text-white ms-1 rounded-pill">
@@ -103,6 +111,7 @@
                             €{{ cart_total_price|default:"0.00"|floatformat:2 }}
                         </span>
                     </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
