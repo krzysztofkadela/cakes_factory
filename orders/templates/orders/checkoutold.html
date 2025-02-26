@@ -108,7 +108,10 @@
                 {% endif %}
 
                 <!-- ✅ Pay with Stripe Button -->
-                <div class="mt-4 text-end">
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'cart_view' %}" class="btn btn-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Back to Cart
+                    </a>
                     <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-credit-card"></i> Pay with Stripe
                     </button>
@@ -158,7 +161,10 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let today = new Date().toISOString().split("T")[0];
-        document.getElementById("delivery_date").setAttribute("min", today);
+        let dateInput = document.getElementById("id_delivery_date");
+        if(dateInput) {
+            dateInput.setAttribute("min", today);
+        }
     });
 </script>
 

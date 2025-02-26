@@ -11,9 +11,11 @@
             <h4>Shipping & Billing Details</h4>
 
             <!-- 
-              ✅ Single form posting to create_checkout_session
+              POST to your checkout view:
+              (Depending on your setup, you may do action="{% url 'checkout' %}"
+               or action="{% url 'create_checkout_session' %}" if that’s your flow)
             -->
-            <form id="checkout-form" method="POST" action="{% url 'create_checkout_session' %}">
+            <form id="checkout-form" method="POST" action="{% url 'checkout' %}">
                 {% csrf_token %}
 
                 <!-- SHIPPING SECTION -->
@@ -278,14 +280,16 @@
                 </div>
                 {% endif %}
 
-                <!-- ✅ Form Buttons -->
+                <!-- ✅ Submit Buttons -->
                 <div class="d-flex justify-content-between mt-4">
                     <a href="{% url 'cart_view' %}" class="btn btn-secondary btn-lg">
                         <i class="bi bi-arrow-left"></i> Back to Cart
                     </a>
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="bi bi-credit-card"></i> Pay with Stripe
-                    </button>
+                    <form action="{% url 'create_checkout_session' %}" method="POST">
+                        {% csrf_token %}
+                        <!-- your shipping/billing fields if needed -->
+                        <button type="submit" class="btn btn-success">Pay with Stripe</button>
+                    </form>
                 </div>
             </form>
         </div>
@@ -348,7 +352,7 @@
     // Listen for changes
     useSameBillingCheckbox.addEventListener("change", toggleBilling);
 
-    // Restrict earliest delivery date to "today"
+    // Optional: Restrict earliest delivery date to "today"
     document.addEventListener("DOMContentLoaded", function () {
         let today = new Date().toISOString().split("T")[0];
         let dateInput = document.getElementById("id_delivery_date");

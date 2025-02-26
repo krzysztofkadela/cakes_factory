@@ -147,87 +147,6 @@ def cart_remove(request, product_id, size_id=0):
     return redirect("cart_view")
 
 
-def checkout(request):
-    """Handles order checkout, validation, and Stripe payment initiation."""
-    cart_items = []
-    total_price = Decimal("0.00")
-
-    if request.user.is_authenticated:
-        db_cart_items = CartItem.objects.filter(user=request.user)
-        if not db_cart_items.exists():
-            messages.error(request, "Your cart is empty!")
-            return redirect("cart_view")
-        for item in db_cart_items:
-            subtotal = item.adjusted_price * item.quantity
-            total_price += subtotal
-            cart_items.append({
-                "product": item.product,
-                "size": item.size,
-                "quantity": item.quantity,
-                "price": item.adjusted_price,
-                "subtotal": subtotal
-            })
-    else:
-        session_cart = request.session.get("cart", {})
-        if not session_cart:
-            messages.error(request, "Your cart is empty!")
-            return redirect("cart_view")
-        for key, item in session_cart.items():
-            if "_" in key:
-                product_id, size_id = key.split("_")
-            else:
-                product_id, size_id = key, None
-            try:
-                product = Product.objects.get(id=product_id)
-                size = Size.objects.get(id=size_id) if size_id else None
-            except (Product.DoesNotExist, Size.DoesNotExist):
-                continue
-            subtotal = Decimal(item["price"]) * item["quantity"]
-            total_price += subtotal
-            cart_items.append({
-                "product": product,
-                "size": size,
-                "quantity": item["quantity"],
-                "price": Decimal(item["price"]),
-                "subtotal": subtotal
-            })
-
-    # Calculate delivery charge (adjust according to your settings)
-    delivery_charge = Decimal("0.00") if total_price >= Decimal(settings.FREE_DELIVERY_THRESHOLD) else Decimal(settings.STANDARD_DELIVERY_CHARGE)
-    grand_total = total_price + delivery_charge
-
-    if request.method == "POST":
-        form = OrderForm(request.POST)
-        if form.is_valid():
-            order = form.save(commit=False)
-            if request.user.is_authenticated:
-                order.user = request.user
-            order.save()
-
-            # Create order items for each cart item
-            for item in cart_items:
-                OrderItem.objects.create(
-                    order=order,
-                    product=item["product"],
-                    size=item.get("size"),
-                    quantity=item["quantity"],
-                    price_each=item["price"]
-                )
-
-            messages.success(request, "Order placed! Redirecting to payment.")
-            return redirect(reverse("create_checkout_session"))
-        messages.error(request, "Please fix the errors in the form.")
-    else:
-        form = OrderForm(initial={"email": request.user.email} if request.user.is_authenticated else {})
-
-    return render(request, "orders/checkout.html", {
-        "form": form,
-        "cart_items": cart_items,
-        "total_price": total_price,
-        "delivery_charge": delivery_charge,
-        "grand_total": grand_total
-    })
-
 
 @login_required
 def order_history(request):
@@ -324,30 +243,127 @@ def clear_cart_on_logout(sender, request, user, **kwargs):
     request.session["cart"] = {}
     request.session.modified = True
 
+def checkout_page(request):
+    """
+    Displays the checkout.html page with shipping/billing fields 
+    and a list of cart items. No order creation here -- that's 
+    handled by create_checkout_session when the user submits the form.
+    """
+
+    # Gather cart items so the template can display them properly.
+    cart_items = []
+    total_price = Decimal("0.00")
+
+    if request.user.is_authenticated:
+        db_cart_items = CartItem.objects.filter(user=request.user)
+        if not db_cart_items.exists():
+            messages.error(request, "Your cart is empty!")
+            return redirect("cart_view")
+
+        for ci in db_cart_items:
+            subtotal = ci.adjusted_price * ci.quantity
+            total_price += subtotal
+            cart_items.append({
+                "product": ci.product,
+                "size": ci.size,
+                "quantity": ci.quantity,
+                "price": ci.adjusted_price,
+                "subtotal": subtotal,
+            })
+    else:
+        session_cart = request.session.get("cart", {})
+        if not session_cart:
+            messages.error(request, "Your cart is empty!")
+            return redirect("cart_view")
+
+        for key, item in session_cart.items():
+            if "_" in key:
+                product_id, size_id = key.split("_")
+            else:
+                product_id, size_id = key, None
+            try:
+                product = Product.objects.get(id=product_id)
+                size = Size.objects.get(id=size_id) if size_id else None
+            except (Product.DoesNotExist, Size.DoesNotExist):
+                continue
+
+            subtotal = Decimal(item["price"]) * item["quantity"]
+            total_price += subtotal
+            cart_items.append({
+                "product": product,
+                "size": size,
+                "quantity": item["quantity"],
+                "price": Decimal(item["price"]),
+                "subtotal": subtotal,
+            })
+
+    # Delivery & grand total (optional)
+    delivery_charge = Decimal("0.00")
+    if total_price < Decimal(settings.FREE_DELIVERY_THRESHOLD):
+        delivery_charge = Decimal(settings.STANDARD_DELIVERY_CHARGE)
+    grand_total = total_price + delivery_charge
+
+    # We do NOT create an Order here. 
+    # We only render checkout.html with cart_items.
+    return render(request, "orders/checkout.html", {
+        "cart_items": cart_items,
+        "total_price": total_price,
+        "delivery_charge": delivery_charge,
+        "grand_total": grand_total,
+    })
+# create checkout session
 
 @require_POST
 def create_checkout_session(request):
     """
-    Handles order creation and initiates a Stripe Checkout session.
-    Now includes shipping_address_collection to let users enter shipping details at Stripe.
+    Single-step approach:
+    1) Receives shipping/billing from the form in `checkout.html`.
+    2) Validates `OrderForm`.
+    3) Creates `Order`, updates user profile if logged in.
+    4) Creates `OrderItem`s from the cart, then redirects to Stripe Checkout.
     """
+
     form = OrderForm(request.POST)
     if not form.is_valid():
         return JsonResponse({
-            "error": "Invalid billing details. Please check your input.",
+            "error": "Invalid shipping/billing details. Please check your input.",
             "form_errors": form.errors
         }, status=400)
 
+    # 1) Create the new_order from form data
     new_order = form.save(commit=False)
     if request.user.is_authenticated:
         new_order.user = request.user
     new_order.save()
-
-    # Debug log: check that order_number exists
     print(f"✅ Order Created: {new_order.order_number}")
 
-    # Gather all cart items (either DB-based or session-based)
-    cart_items = []
+    # 2) If user is logged in, update user shipping/billing
+    if request.user.is_authenticated:
+        user_profile = request.user
+        # Shipping
+        user_profile.shipping_full_name = form.cleaned_data.get("full_name")
+        user_profile.shipping_phone = form.cleaned_data.get("phone_number")
+        user_profile.shipping_street_address1 = form.cleaned_data.get("street_address1")
+        user_profile.shipping_street_address2 = form.cleaned_data.get("street_address2")
+        user_profile.shipping_city = form.cleaned_data.get("town_or_city")
+        user_profile.shipping_county = form.cleaned_data.get("county")
+        user_profile.shipping_postcode = form.cleaned_data.get("postcode")
+        user_profile.shipping_country = form.cleaned_data.get("country")
+
+        # Billing
+        user_profile.billing_full_name = form.cleaned_data.get("billing_full_name")
+        user_profile.billing_phone = form.cleaned_data.get("billing_phone_number")
+        user_profile.billing_street_address1 = form.cleaned_data.get("billing_street_address1")
+        user_profile.billing_street_address2 = form.cleaned_data.get("billing_street_address2")
+        user_profile.billing_city = form.cleaned_data.get("billing_town_or_city")
+        user_profile.billing_county = form.cleaned_data.get("billing_county")
+        user_profile.billing_postcode = form.cleaned_data.get("billing_postcode")
+        user_profile.billing_country = form.cleaned_data.get("billing_country")
+
+        user_profile.save()
+        print("✅ User shipping/billing profile updated.")
+
+    # 3) Gather cart items
     if request.user.is_authenticated:
         cart_items = list(CartItem.objects.filter(user=request.user))
     else:
@@ -355,128 +371,7 @@ def create_checkout_session(request):
         if not session_cart:
             return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
 
-        for key, item in session_cart.items():
-            if "_" in key:
-                product_id, size_id = key.split("_")
-            else:
-                product_id, size_id = key, None
-            try:
-                product = Product.objects.get(id=product_id)
-                size = Size.objects.get(id=size_id) if size_id else None
-            except (Product.DoesNotExist, Size.DoesNotExist):
-                # You might consider returning a 400 here if the product or size no longer exists
-                continue
-            cart_items.append({
-                "product": product,
-                "size": size,
-                "quantity": item.get("quantity", 1),
-                "price": Decimal(item.get("price", 0))
-            })
-
-    if not cart_items:
-        return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
-
-    # Create line_items for Stripe
-    line_items = []
-    for item in cart_items:
-        try:
-            if isinstance(item, CartItem):
-                product = item.product
-                quantity = item.quantity
-                price = item.adjusted_price
-                size = item.size
-            else:
-                product = item["product"]
-                quantity = item["quantity"]
-                price = item["price"]
-                size = item.get("size")
-
-            # Store each OrderItem in the DB
-            OrderItem.objects.create(
-                order=new_order,
-                product=product,
-                size=size,
-                quantity=quantity,
-                price_each=price
-            )
-
-            line_items.append({
-                'price_data': {
-                    'currency': 'eur',  # Adjust the currency if needed
-                    'product_data': {'name': product.name},
-                    'unit_amount': int(price * 100),
-                },
-                'quantity': quantity,
-            })
-        except Product.DoesNotExist:
-            return JsonResponse({"error": f"Product {product.id} not found."}, status=400)
-
-    # Build metadata for Stripe
-    metadata = {
-        "order_number": str(new_order.order_number),
-        "customer_email": new_order.email or "unknown@example.com"
-    }
-    print(f"✅ Stripe Metadata: {metadata}")
-
-    # Attempt to create Stripe session
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=line_items,
-            mode='payment',
-            success_url=request.build_absolute_uri(reverse('payment_success')),
-            cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
-            metadata=metadata,
-            payment_intent_data={"metadata": metadata},
-            shipping_address_collection={
-                "allowed_countries": [
-                    "US", "GB", "CA", "FR", "DE", "ES", "IT"
-                    # Add or remove countries as desired
-                ]
-            },
-        )
-        print(f"✅ Stripe Checkout Session Created: {checkout_session.id}")
-        print(f"✅ Stripe Checkout Session Metadata: {checkout_session.metadata}")
-        return redirect(checkout_session.url)
-
-    except stripe.error.StripeError as e:
-        # ⚠ Best practice: return a HTTP response with an error status code
-        print(f"❌ Stripe Error: {e}")
-        return JsonResponse(
-            {"error": "There was a problem creating the Stripe Checkout Session.", "details": str(e)},
-            status=500
-        )
-
-
-@require_POST
-def create_checkout_sessionold(request):
-    """
-    Handles order creation and initiates a Stripe Checkout session.
-    Now includes shipping_address_collection to let users enter shipping details at Stripe.
-    """
-    form = OrderForm(request.POST)
-    if not form.is_valid():
-        return JsonResponse({
-            "error": "Invalid billing details. Please check your input.",
-            "form_errors": form.errors
-        }, status=400)
-
-    new_order = form.save(commit=False)
-    if request.user.is_authenticated:
-        new_order.user = request.user
-    new_order.save()
-
-    # Debug log: check that order_number exists
-    print(f"✅ Order Created: {new_order.order_number}")
-
-    # Gather all cart items (either DB-based or session-based)
-    cart_items = []
-    if request.user.is_authenticated:
-        cart_items = list(CartItem.objects.filter(user=request.user))
-    else:
-        session_cart = request.session.get("cart", {})
-        if not session_cart:
-            return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
+        cart_items = []
         for key, item in session_cart.items():
             if "_" in key:
                 product_id, size_id = key.split("_")
@@ -494,43 +389,44 @@ def create_checkout_sessionold(request):
                 "price": Decimal(item.get("price", 0))
             })
 
+    # 4) If no cart items, cannot proceed
     if not cart_items:
         return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
 
-    # Create line_items for Stripe
+    # 5) Create each OrderItem & build Stripe line_items
     line_items = []
     for item in cart_items:
-        try:
-            if isinstance(item, CartItem):
-                product = item.product
-                quantity = item.quantity
-                price = item.adjusted_price
-                size = item.size
-            else:
-                product = item["product"]
-                quantity = item["quantity"]
-                price = item["price"]
-                size = item.get("size")
+        if isinstance(item, CartItem):
+            product = item.product
+            quantity = item.quantity
+            price = item.adjusted_price
+            size = item.size
+        else:
+            product = item["product"]
+            quantity = item["quantity"]
+            price = item["price"]
+            size = item.get("size")
 
-            # Store each OrderItem in the DB
-            OrderItem.objects.create(
-                order=new_order,
-                product=product,
-                size=size,
-                quantity=quantity,
-                price_each=price
-            )
-            line_items.append({
-                'price_data': {
-                    'currency': 'eur',
-                    'product_data': {'name': product.name},
-                    'unit_amount': int(price * 100),
-                },
-                'quantity': quantity,
-            })
-        except Product.DoesNotExist:
-            return JsonResponse({"error": f"Product {product.id} not found."}, status=400)
+        # Save to DB
+        OrderItem.objects.create(
+            order=new_order,
+            product=product,
+            size=size,
+            quantity=quantity,
+            price_each=price
+        )
 
+        # Stripe line item
+        line_items.append({
+            'price_data': {
+                'currency': 'eur',  # or your currency
+                'product_data': {'name': product.name},
+                'unit_amount': int(price * 100),
+            },
+            'quantity': quantity,
+        })
+
+    # 6) Create Stripe Checkout Session
     metadata = {
         "order_number": str(new_order.order_number),
         "customer_email": new_order.email or "unknown@example.com"
@@ -538,7 +434,6 @@ def create_checkout_sessionold(request):
     print(f"✅ Stripe Metadata: {metadata}")
 
     try:
-        # Include shipping_address_collection to collect shipping details from the user
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=line_items,
@@ -547,20 +442,16 @@ def create_checkout_sessionold(request):
             cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
             metadata=metadata,
             payment_intent_data={"metadata": metadata},
-            shipping_address_collection={
-                "allowed_countries": [
-                    "US", "GB", "CA", "FR", "DE", "ES", "IT"
-                    # Add or remove countries as desired
-                ]
-            },
+            # shipping_address_collection REMOVED => only card details
         )
         print(f"✅ Stripe Checkout Session Created: {checkout_session.id}")
-        print(f"✅ Stripe Checkout Session Metadata: {checkout_session.metadata}")
         return redirect(checkout_session.url)
     except stripe.error.StripeError as e:
         print(f"❌ Stripe Error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
-
+        return JsonResponse({
+            "error": "There was a problem creating the Stripe Checkout Session.",
+            "details": str(e)
+        }, status=500)
 
 def payment_success(request):
     return render(request, "orders/payment_success.html")
@@ -596,3 +487,14 @@ def stripe_webhook(request):
     event_handler = event_map.get(event["type"], handler.handle_event)
     response = event_handler(event)
     return response
+
+# order_detail view.
+
+@login_required
+def order_detail(request, order_id):
+    """
+    Display details of a specific order belonging to the logged-in user.
+    """
+    order = get_object_or_404(Order, pk=order_id, user=request.user)
+    # For security, ensure the order belongs to the current user
+    return render(request, "orders/order_detail.html", {"order": order})
