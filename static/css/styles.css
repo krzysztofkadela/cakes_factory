@@ -14,16 +14,23 @@
 /* ======== Custom Styles for Cake Factory ======== */
 
 /* General Styling */
-
 body {
-  background-color: #f8f9fa; /* Light grey background */
-  font-family: 'Poppins', sans-serif; /* Custom font */
+  background-color: #FAF3E0; /* Vanilla Cream */
+  font-family: 'Poppins', sans-serif;
+  color: #5D4037; /* Rich Chocolate */
 }
 
 /* Navigation Bar */
 .navbar {
-  background-color: #ffffff; /* White navbar */
+  background-color: #E8C39E; /* Soft Gold */
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+.navbar-brand, .navbar-nav .nav-link {
+  color: #5D4037 !important; /* Rich Chocolate */
+  font-weight: bold;
+}
+.navbar-nav .nav-link:hover {
+  color: #D7263D !important; /* Cherry Red */
 }
 
 /* Hero Section */
@@ -31,39 +38,78 @@ body {
   background: url('/static/images/female-baker_new.jpg') no-repeat center center fixed;
   background-size: cover;
   height: calc(100vh - 164px);
-  color: #555;
-  font-family: 'Lato';
+  color: #FAF3E0; /* Vanilla Cream */
+  font-family: 'Lato', sans-serif;
+  text-align: center;
+  padding: 100px 20px;
+}
+.hero h1 {
+  font-size: 3rem;
+  font-weight: bold;
+}
+.hero p {
+  font-size: 1.5rem;
 }
 
 /* Product Cards */
 .card {
   transition: transform 0.3s ease-in-out;
+  border: none;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 .card:hover {
   transform: scale(1.05);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+.card-title {
+  color: #5D4037; /* Rich Chocolate */
+  font-weight: bold;
+}
+.card-price {
+  color: #D7263D; /* Cherry Red */
+  font-weight: bold;
 }
 
+/* Buttons */
+.btn-primary {
+  background-color: #D7263D; /* Cherry Red */
+  border-color: #D7263D;
+}
+.btn-primary:hover {
+  background-color: #5D4037; /* Rich Chocolate */
+  border-color: #5D4037;
+}
 
+/* Messages & Alerts */
 .messages-container {
   position: fixed;
-  top: 70px; /* Adjust this so it sits right under the navbar */
+  top: 70px;
   right: 20px;
   max-width: 350px;
   z-index: 1050;
 }
-
 .alert {
   opacity: 0.95;
 }
+
 /* Checkout Form Enhancements */
 .form-control.is-invalid {
   border-color: #dc3545;
   background-image: none;
 }
-
 .invalid-feedback {
   display: block;
   color: #dc3545;
   font-size: 0.875rem;
   margin-top: 5px;
+}
+
+/* Footer */
+footer {
+  background-color: #5D4037; /* Rich Chocolate */
+  color: #FAF3E0; /* Vanilla Cream */
+  text-align: center;
+  padding: 20px 0;
 }
