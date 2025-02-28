@@ -65,6 +65,8 @@ INSTALLED_APPS = [
     'orders',    # Order & payment handling
     'users',     # User authentication
     'home',
+    # Optional-- newsletter function..
+    'newsletter',
 ]
 
 MIDDLEWARE = [
