@@ -14,6 +14,14 @@
 /* ======== Custom Styles for Cake Factory ======== */
 
 /* General Styling */
+
+/* Ensure the whole page fills at least the full viewport height */
+html, body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 body {
   background-color: #FAF3E0; /* Vanilla Cream */
   font-family: 'Poppins', sans-serif;
@@ -31,6 +39,12 @@ body {
 }
 .navbar-nav .nav-link:hover {
   color: #D7263D !important; /* Cherry Red */
+}
+
+/* Push main content below navbar and allow it to expand */
+main {
+  flex: 1; /* This makes the main content expand to fill available space */
+  padding-top: 80px; /* Adjust to match the height of the navbar */
 }
 
 /* Hero Section */
@@ -113,3 +127,14 @@ footer {
   text-align: center;
   padding: 20px 0;
 }
+
+/* Sticky footer - stays at the bottom */
+.footer {
+  flex-shrink: 0;
+}
+
+
+
+
+
+
