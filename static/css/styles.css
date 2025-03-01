@@ -1,9 +1,9 @@
 @charset "UTF-8";
 /*!
-* Start Bootstrap - Shop Homepage v5.0.6 (https://startbootstrap.com/template/shop-homepage)
-* Copyright 2013-2023 Start Bootstrap
-* Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
-*/
+ * Start Bootstrap - Shop Homepage v5.0.6 (https://startbootstrap.com/template/shop-homepage)
+ * Copyright 2013-2023 Start Bootstrap
+ * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
+ */
 /*!
  * Bootstrap  v5.2.3 (https://getbootstrap.com/)
  * Copyright 2011-2022 The Bootstrap Authors
@@ -13,9 +13,7 @@
 
 /* ======== Custom Styles for Cake Factory ======== */
 
-/* General Styling */
-
-/* Ensure the whole page fills at least the full viewport height */
+/* === General Styling === */
 html, body {
   height: 100%;
   display: flex;
@@ -28,10 +26,11 @@ body {
   color: #5D4037; /* Rich Chocolate */
 }
 
-/* Navigation Bar */
+/* === Navigation Bar (Glassmorphism) === */
 .navbar {
-  background-color: #E8C39E; /* Soft Gold */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: rgba(232, 195, 158, 0.9); /* Soft Gold with slight transparency */
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px); /* Glass effect */
 }
 .navbar-brand, .navbar-nav .nav-link {
   color: #5D4037 !important; /* Rich Chocolate */
@@ -41,31 +40,53 @@ body {
   color: #D7263D !important; /* Cherry Red */
 }
 
-/* Push main content below navbar and allow it to expand */
+/* === Main Content (Responsive Centering) === */
 main {
-  flex: 1; /* This makes the main content expand to fill available space */
-  padding-top: 80px; /* Adjust to match the height of the navbar */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+  padding: 120px 20px 40px; /* Spacing below navbar */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* Hero Section */
+/* === Hero Section (Only on Home Page, Responsive) === */
 .hero {
   background: url('/static/images/female-baker_new.jpg') no-repeat center center fixed;
   background-size: cover;
-  height: calc(100vh - 164px);
+  height: 80vh; /* Make it adaptable */
   color: #FAF3E0; /* Vanilla Cream */
-  font-family: 'Lato', sans-serif;
   text-align: center;
-  padding: 100px 20px;
+  padding: 50px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-overlay {
+  background: rgba(0, 0, 0, 0.5); /* Dark overlay for readability */
+  padding: 20px;
+  border-radius: 10px;
 }
 .hero h1 {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: bold;
 }
 .hero p {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
+}
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  .hero p {
+    font-size: 1rem;
+  }
 }
 
-/* Product Cards */
+/* === Product Cards (Responsive) === */
 .card {
   transition: transform 0.3s ease-in-out;
   border: none;
@@ -86,7 +107,7 @@ main {
   font-weight: bold;
 }
 
-/* Buttons */
+/* === Buttons === */
 .btn-primary {
   background-color: #D7263D; /* Cherry Red */
   border-color: #D7263D;
@@ -96,10 +117,10 @@ main {
   border-color: #5D4037;
 }
 
-/* Messages & Alerts */
+/* === Messages & Alerts === */
 .messages-container {
   position: fixed;
-  top: 70px;
+  top: 120px;
   right: 20px;
   max-width: 350px;
   z-index: 1050;
@@ -108,7 +129,7 @@ main {
   opacity: 0.95;
 }
 
-/* Checkout Form Enhancements */
+/* === Checkout Form Enhancements === */
 .form-control.is-invalid {
   border-color: #dc3545;
   background-image: none;
@@ -120,21 +141,39 @@ main {
   margin-top: 5px;
 }
 
-/* Footer */
-footer {
-  background-color: #5D4037; /* Rich Chocolate */
-  color: #FAF3E0; /* Vanilla Cream */
-  text-align: center;
-  padding: 20px 0;
+.py-5 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
-/* Sticky footer - stays at the bottom */
+/* === Footer (Responsive & Sticky at Bottom) === */
 .footer {
+  background-color: #5D4037; /* Rich Chocolate */
+  color: #FAF3E0; /* Vanilla Cream */
+  padding: 20px 0;
+  text-align: center;
   flex-shrink: 0;
 }
 
+.footer .social-icons {
+  font-size: 1.5rem;
+}
+.footer .social-icons a {
+  color: #FAF3E0;
+  margin: 0 10px;
+  transition: 0.3s;
+}
+.footer .social-icons a:hover {
+  color: #D7263D; /* Cherry Red */
+}
 
+.footer .newsletter {
+  max-width: 500px;
+  margin: auto;
+}
 
-
-
-
+@media (max-width: 768px) {
+  .footer .newsletter input {
+    width: 100%;
+  }
+}

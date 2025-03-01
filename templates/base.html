@@ -19,10 +19,11 @@
 
     <!-- Custom Theme CSS -->
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
-    
+
     <style>
         /* Make the page take up full height */
-        html, body {
+        html,
+        body {
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -31,7 +32,8 @@
         /* Ensure content is always below navbar */
         main {
             flex: 1;
-            padding-top: 80px; /* Adjust to match navbar height */
+            padding-top: 80px;
+            /* Adjust to match navbar height */
         }
 
         /* Sticky Footer */
@@ -114,31 +116,26 @@
     <!-- Footer -->
     <footer class="footer bg-dark text-light py-4">
         <div class="container text-center">
-            <div class="row">
+            <div class="row align-items-center">
                 <!-- Social Media Links -->
                 <div class="col-md-6 mb-3">
                     <h5>Follow Us</h5>
-                    <a href="https://www.facebook.com/yourpage" class="text-light me-3" target="_blank">
-                        <i class="bi bi-facebook"></i>
-                    </a>
-                    <a href="https://twitter.com/yourpage" class="text-light me-3" target="_blank">
-                        <i class="bi bi-twitter"></i>
-                    </a>
-                    <a href="https://www.instagram.com/yourpage" class="text-light me-3" target="_blank">
-                        <i class="bi bi-instagram"></i>
-                    </a>
-                    <a href="https://www.youtube.com/yourchannel" class="text-light" target="_blank">
-                        <i class="bi bi-youtube"></i>
-                    </a>
+                    <div class="social-icons">
+                        <a href="https://www.facebook.com/yourpage" target="_blank"><i class="bi bi-facebook"></i></a>
+                        <a href="https://twitter.com/yourpage" target="_blank"><i class="bi bi-twitter"></i></a>
+                        <a href="https://www.instagram.com/yourpage" target="_blank"><i class="bi bi-instagram"></i></a>
+                        <a href="https://www.youtube.com/yourchannel" target="_blank"><i class="bi bi-youtube"></i></a>
+                    </div>
                 </div>
 
                 <!-- Newsletter Signup -->
                 <div class="col-md-6">
                     <h5>Subscribe to Our Newsletter</h5>
-                    <form id="newsletter-form" method="POST" action="{% url 'newsletter_signup' %}">
+                    <form id="newsletter-form" method="POST" action="{% url 'newsletter_signup' %}" class="newsletter">
                         {% csrf_token %}
                         <div class="input-group">
-                            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                            <input type="email" name="email" class="form-control" placeholder="Enter your email"
+                                required>
                             <button class="btn btn-outline-light" type="submit">Subscribe</button>
                         </div>
                     </form>
