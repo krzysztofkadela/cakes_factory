@@ -1,6 +1,6 @@
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.admin.views.decorators import user_passes_test
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
 from .models import Product, Category
 from .forms import ProductForm
@@ -112,23 +112,51 @@ def filter_products(request):
 
     return render(request, 'products/product_list.html', {'products': products})
 
-# product add view for admin to manage products.
+# Admin manage product functionality views:
 
-@staff_member_required
+def is_superuser(user):
+    return user.is_superuser
+
+@user_passes_test(is_superuser)
 def add_product(request):
-    """Allows staff members to add a new product."""
+    """Allows superusers to add a new product."""
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
-            product = form.save(commit=False)  # Save product instance first
-            product.save()  # Save it to generate an ID
-            form.save_m2m()  # Save many-to-many relationships (sizes)
-            
-            messages.success(request, "✅ Product added successfully!")
-            return redirect("user_profile")  # Redirect after successful addition
+            form.save()
+            messages.success(request, "Product added successfully!")
+            return redirect("user_profile")  # Redirect to profile page
         else:
-            messages.error(request, "❌ Please correct the errors below.")
+            messages.error(request, "Please correct the errors below.")
     else:
         form = ProductForm()
 
     return render(request, "products/add_product.html", {"form": form})
+
+@user_passes_test(is_superuser)
+def edit_product(request, product_id):
+    """Allows superusers to edit an existing product."""
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Product updated successfully!")
+            return redirect("user_profile")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, "products/edit_product.html", {"form": form, "product": product})
+
+@user_passes_test(is_superuser)
+def delete_product(request, product_id):
+    """Allows superusers to delete a product."""
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == "POST":
+        product.delete()
+        messages.success(request, "Product deleted successfully!")
+        return redirect("user_profile")
+
+    return render(request, "products/delete_product.html", {"product": product})
