@@ -25,6 +25,27 @@
 
     <title>{% block title %}Cake Factory{% endblock %}</title>
 
+    <style>
+        /* Make the page take up full height */
+        html,
+        body {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Ensure content is always below navbar */
+        main {
+            flex: 1;
+            padding-top: 80px;
+            /* Adjust to match navbar height */
+        }
+
+        /* Sticky Footer */
+        .footer {
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 
 <body>
