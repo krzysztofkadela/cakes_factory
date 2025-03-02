@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
@@ -153,7 +153,6 @@ def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "orders/order_history.html", {"orders": orders})
 
-
 @login_required
 def custom_order(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -179,7 +178,6 @@ def custom_order(request, product_id):
     else:
         form = CustomOrderForm()
     return render(request, "orders/custom_order.html", {"form": form, "product": product})
-
 
 def cart_update(request, product_id, size_id=0):
     new_quantity = request.POST.get("quantity")
@@ -217,7 +215,6 @@ def cart_update(request, product_id, size_id=0):
         request.session.modified = True
     return HttpResponseRedirect(reverse("cart_view"))
 
-
 @receiver(user_logged_in)
 def merge_cart_on_login(sender, request, user, **kwargs):
     cart = request.session.get("cart", {})
@@ -236,7 +233,6 @@ def merge_cart_on_login(sender, request, user, **kwargs):
             cart_item.quantity += item["quantity"]
         cart_item.save()
     request.session["cart"] = {}
-
 
 @receiver(user_logged_out)
 def clear_cart_on_logout(sender, request, user, **kwargs):
@@ -312,7 +308,6 @@ def checkout_page(request):
         "grand_total": grand_total,
     })
 # create checkout session
-
 @require_POST
 def create_checkout_session(request):
     """
@@ -456,10 +451,8 @@ def create_checkout_session(request):
 def payment_success(request):
     return render(request, "orders/payment_success.html")
 
-
 def payment_cancel(request):
     return render(request, "orders/payment_cancel.html")
-
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -487,14 +480,31 @@ def stripe_webhook(request):
     event_handler = event_map.get(event["type"], handler.handle_event)
     response = event_handler(event)
     return response
-
 # order_detail view.
 
 @login_required
 def order_detail(request, order_id):
+
     """
     Display details of a specific order belonging to the logged-in user.
     """
     order = get_object_or_404(Order, pk=order_id, user=request.user)
     # For security, ensure the order belongs to the current user
     return render(request, "orders/order_detail.html", {"order": order})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def update_order_status(request, order_id):
+    """Admin can update the status of an order."""
+    order = get_object_or_404(Order, id=order_id)
+    # For example, toggle status from 'pending' to 'shipped' or any logic you want:
+    if order.status == "pending":
+        order.status = "shipped"
+        messages.success(request, f"Order {order.id} marked as shipped.")
+    else:
+        order.status = "pending"
+        messages.info(request, f"Order {order.id} reverted to pending.")
+    order.save()
+
+    # Redirect back to user profile or wherever you want
+    return redirect("user_profile")

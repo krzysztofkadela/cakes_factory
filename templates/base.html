@@ -96,6 +96,18 @@
         </div>
     </nav>
 
+    <!-- ✅ Messages Display -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Hero Section (ONLY on Homepage) -->
     {% if request.resolver_match.url_name == "home" %}
     <header class="hero d-flex align-items-center justify-content-center">

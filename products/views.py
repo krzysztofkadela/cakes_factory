@@ -1,7 +1,9 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
 from .models import Product, Category
+from .forms import ProductForm
 
 class ProductListViewold(ListView):
     model = Product
@@ -109,3 +111,24 @@ def filter_products(request):
         products = products.exclude(allergen_info__icontains="nuts")
 
     return render(request, 'products/product_list.html', {'products': products})
+
+# product add view for admin to manage products.
+
+@staff_member_required
+def add_product(request):
+    """Allows staff members to add a new product."""
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)  # Save product instance first
+            product.save()  # Save it to generate an ID
+            form.save_m2m()  # Save many-to-many relationships (sizes)
+            
+            messages.success(request, "✅ Product added successfully!")
+            return redirect("user_profile")  # Redirect after successful addition
+        else:
+            messages.error(request, "❌ Please correct the errors below.")
+    else:
+        form = ProductForm()
+
+    return render(request, "products/add_product.html", {"form": form})

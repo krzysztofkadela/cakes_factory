@@ -13,6 +13,7 @@ urlpatterns = [
     path("orders/", views.order_history, name="order_history"),
     path("custom_order/<int:product_id>/", views.custom_order, name="custom_order"),
     path("order/<int:order_id>/", views.order_detail, name="order_detail"),
+    path("update-order-status/<int:order_id>/", views.update_order_status, name="update_order_status"),
 
     # Stripe Checkout & Webhooks
     path("create-checkout-session/", views.create_checkout_session, name="create_checkout_session"),

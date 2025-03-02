@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Add Product - Cake Factory{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">➕ Add New Product</h2>
+
+    <!-- Display messages -->
+    {% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card p-4 shadow">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label">Product Name</label>
+                {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Price (€)</label>
+                {{ form.price }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Stock</label>
+                {{ form.stock }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                {{ form.category }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Product Image</label>
+                {{ form.image }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Add Product</button>
+            <a href="{% url 'user_profile' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
