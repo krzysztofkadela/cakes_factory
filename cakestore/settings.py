@@ -10,21 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+import dj_database_url
 from pathlib import Path
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
+
+# Load environment variables from .env file
 load_dotenv()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ✅ Load environment variables only if .env exists (Prevents errors on Heroku)
+if os.path.exists(os.path.join(BASE_DIR, ".env")):
+    load_dotenv(os.path.join(BASE_DIR, ".env"))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=1a9@w+!hv)4rz^d_t(pf&61%r+(_x73cuna&$nj(2yu3v1ly6'
+# Load SECRET_KEY from .env
+SECRET_KEY = os.getenv("SECRET_KEY", "6x1dLEdacLi8HYTA8Y5S1-Vf4i5xn2JOPRVfIdKFAAYHIR5Qsj5hJu8fgo8pndXAEnI")
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
@@ -35,11 +43,12 @@ FREE_DELIVERY_THRESHOLD = 50.00  # Example: Free shipping for orders over €50
 STANDARD_DELIVERY_CHARGE = 5.00  # Example: Standard delivery fee
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost'
+    'https://cake-factory-65cd55cbb35d.herokuapp.com/'
 ]
 
 
@@ -153,12 +162,23 @@ WSGI_APPLICATION = 'cakestore.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database Configuration
+if os.getenv("DATABASE_URL"):  # Check if DATABASE_URL is set (for Heroku)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv("DATABASE_URL"), 
+            conn_max_age=600,  # Connection pooling
+            ssl_require=True   # Secure SSL connection
+        )
     }
-}
+else:  # Use SQLite for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
