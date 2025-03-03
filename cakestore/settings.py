@@ -43,13 +43,13 @@ FREE_DELIVERY_THRESHOLD = 50.00  # Example: Free shipping for orders over €50
 STANDARD_DELIVERY_CHARGE = 5.00  # Example: Standard delivery fee
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost'
-    'https://cake-factory-65cd55cbb35d.herokuapp.com/'
+    "127.0.0.1",
+    "localhost",
+    "cake-factory-65cd55cbb35d.herokuapp.com"
 ]
 
 
