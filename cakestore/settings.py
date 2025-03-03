@@ -43,7 +43,8 @@ FREE_DELIVERY_THRESHOLD = 50.00  # Example: Free shipping for orders over €50
 STANDARD_DELIVERY_CHARGE = 5.00  # Example: Standard delivery fee
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
+
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
