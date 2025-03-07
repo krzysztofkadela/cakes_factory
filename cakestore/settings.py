@@ -149,6 +149,7 @@ if DEBUG:
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     MEDIA_URL = "/media/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # ✅ static fordevelopment
 else:
     # ✅ Production (Use AWS S3)
     AWS_STORAGE_BUCKET_NAME = "cake-factory-65cd55cbb35d"
