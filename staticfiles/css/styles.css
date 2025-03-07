@@ -55,7 +55,7 @@ main {
 
 /* === Hero Section (Only on Home Page, Responsive) === */
 .hero {
-  background: url('/static/images/female-baker_new.jpg') no-repeat center center fixed;
+  background: url('/static/images/cake_factory.webp') no-repeat center center fixed;
   background-size: cover;
   height: 80vh; /* Make it adaptable */
   color: #FAF3E0; /* Vanilla Cream */
