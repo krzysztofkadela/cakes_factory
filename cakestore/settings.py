@@ -1,64 +1,65 @@
 """
 Django settings for cakestore project.
 """
+
 import os
 import dj_database_url
 from pathlib import Path
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
 
-# ✅ Load environment variables from .env file
+# 1. Load environment variables from .env file
 load_dotenv()
 
-# ✅ Define BASE_DIR
+# 2. Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ✅ Secret Key (Loaded from environment)
+# 3. Secret Key
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 
-# ✅ Debug Mode
+# 4. Debug Mode
 DEBUG = os.getenv("DEVELOPMENT") == "True"
 
-# ✅ Allowed Hosts
+# 5. Allowed Hosts
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "cake-factory-65cd55cbb35d.herokuapp.com",
 ]
 
-# ✅ Stripe Settings
-STRIPE_CURRENCY = 'usd'
+# 6. Stripe Settings
+STRIPE_CURRENCY = "usd"
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WH_SECRET = os.getenv("STRIPE_WH_SECRET", "")
 
-# ✅ Email Settings
+# 7. Email Settings
 if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'Cake Factory <cakefactorystore24@gmail.com>'
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    DEFAULT_FROM_EMAIL = "Cake Factory <cakefactorystore24@gmail.com>"
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_USE_TLS = True
     EMAIL_PORT = 587
-    EMAIL_HOST = 'smtp.gmail.com'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Cake Factory <cakefactorystore24@gmail.com>')
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Cake Factory <cakefactorystore24@gmail.com>")
 
-    # ✅ Secure Email-related settings (production only)
+    # Security: Force HTTPS in production
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 3600
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# ✅ Free Delivery Settings
+# 8. Free Delivery Settings
 FREE_DELIVERY_THRESHOLD = 50.00
 STANDARD_DELIVERY_CHARGE = 5.00
 
-# ✅ Installed Apps
+# 9. Installed Apps
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -81,7 +82,7 @@ INSTALLED_APPS = [
     "newsletter",
 ]
 
-# ✅ Middleware
+# 10. Middleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -94,9 +95,15 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
+# 11. CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = [
+    "https://cake-factory-65cd55cbb35d.herokuapp.com"
+]
+
+# 12. Root URL Config
 ROOT_URLCONF = "cakestore.urls"
 
-# ✅ Templates
+# 13. Templates
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -115,14 +122,16 @@ TEMPLATES = [
     },
 ]
 
+# 14. Authentication Backends
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
+# 15. Site ID
 SITE_ID = 1
 
-# ✅ User Authentication
+# 16. User Authentication / Allauth
 AUTH_USER_MODEL = "users.CustomUser"
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
@@ -134,21 +143,23 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Cake Factory] "
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"  # Change to HTTPS in production
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 
+# 17. WSGI Application
 WSGI_APPLICATION = "cakestore.wsgi.application"
 
-# ✅ Database Configuration
+# 18. Database Configuration (with SSL and health checks)
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=600,
         ssl_require=not DEBUG,
+        conn_health_checks=True,  # => Reconnect if idle
     )
 }
 
-# ✅ Static & Media Files Configuration
+# 19. Static & Media Files
 if DEBUG:
     STATIC_URL = "/static/"
     STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -169,13 +180,14 @@ else:
 
     STATICFILES_STORAGE = "custom_storages.StaticStorage"
     DEFAULT_FILE_STORAGE = "custom_storages.MediaStorage"
+
     STATICFILES_LOCATION = "static"
     MEDIAFILES_LOCATION = "media"
 
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/"
 
-# ✅ Messages Framework (Bootstrap Friendly)
+# 20. Messages Framework (Bootstrap Friendly)
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 MESSAGE_TAGS = {
     messages.DEBUG: "alert-secondary",
@@ -185,7 +197,7 @@ MESSAGE_TAGS = {
     messages.ERROR: "alert-danger",
 }
 
-# ✅ Password Validation
+# 21. Password Validation
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -193,11 +205,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# ✅ Internationalization
+# 22. Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Default Auto Field
+# 23. Default Auto Field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
