@@ -43,17 +43,8 @@ else:
     EMAIL_PORT = 587
     EMAIL_HOST = "smtp.gmail.com"
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASS")
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Cake Factory <cakefactorystore24@gmail.com>")
-
-    # Security: Force HTTPS in production
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 3600
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # 8. Free Delivery Settings
 FREE_DELIVERY_THRESHOLD = 50.00
@@ -129,7 +120,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # 15. Site ID
-SITE_ID = 1
+if DEBUG:
+    SITE_ID = 2  # assuming your local site in admin has ID=2
+else:
+    SITE_ID = 1  # production site ID
 
 # 16. User Authentication / Allauth
 AUTH_USER_MODEL = "users.CustomUser"
@@ -143,7 +137,10 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Cake Factory] "
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
+# Adjust protocol based on environment:
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
+
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 
 # 17. WSGI Application
