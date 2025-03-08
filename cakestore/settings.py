@@ -7,15 +7,11 @@ from pathlib import Path
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
 
-# ✅ Load environment variables
+# ✅ Load environment variables from .env file
 load_dotenv()
 
 # ✅ Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# ✅ Load environment variables only if .env exists (Prevents errors on Heroku)
-if os.path.exists(os.path.join(BASE_DIR, ".env")):
-    load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # ✅ Secret Key (Loaded from environment)
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
@@ -23,7 +19,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 # ✅ Debug Mode
 DEBUG = os.getenv("DEVELOPMENT") == "True"
 
-# ✅ Allowed Hosts (Fixed syntax issue)
+# ✅ Allowed Hosts
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
@@ -35,6 +31,19 @@ STRIPE_CURRENCY = 'usd'
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WH_SECRET = os.getenv("STRIPE_WH_SECRET", "")
+
+# ✅ Email Settings
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'Cake Factory <cakefactorystore24@gmail.com>'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_USE_TLS = True
+    EMAIL_PORT = 587
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "cakefactorystore24@gmail.com")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+    DEFAULT_FROM_EMAIL = 'Cake Factory <cakefactorystore24@gmail.com>'
 
 # ✅ Free Delivery Settings
 FREE_DELIVERY_THRESHOLD = 50.00
@@ -52,7 +61,7 @@ INSTALLED_APPS = [
     "django_countries",
     "crispy_forms",
     "crispy_bootstrap5",
-    "storages",  # Required for AWS S3
+    "storages",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -66,7 +75,7 @@ INSTALLED_APPS = [
 # ✅ Middleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # ✅ Enables static file serving on Heroku
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -104,14 +113,6 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
-# ✅ Email Settings (For Production)
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = os.getenv("EMAIL_PORT", 587)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-
 # ✅ User Authentication
 AUTH_USER_MODEL = "users.CustomUser"
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
@@ -122,36 +123,30 @@ ACCOUNT_USERNAME_MIN_LENGTH = 4
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Cake Factory] "
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"  # Change to HTTPS in production
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 
 WSGI_APPLICATION = "cakestore.wsgi.application"
 
 # ✅ Database Configuration
-if os.getenv("DATABASE_URL"):
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=os.getenv("DATABASE_URL"), conn_max_age=600, ssl_require=True
-        )
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
+}
 
 # ✅ Static & Media Files Configuration
 if DEBUG:
-    # ✅ Local development (Use local static/media files)
     STATIC_URL = "/static/"
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+    STATICFILES_DIRS = [BASE_DIR / "static"]
+    STATIC_ROOT = BASE_DIR / "staticfiles"
     MEDIA_URL = "/media/"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # ✅ static fordevelopment
+    MEDIA_ROOT = BASE_DIR / "media"
 else:
-    # ✅ Production (Use AWS S3)
     AWS_STORAGE_BUCKET_NAME = "cake-factory-65cd55cbb35d"
     AWS_S3_REGION_NAME = "eu-west-1"
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -165,7 +160,6 @@ else:
 
     STATICFILES_STORAGE = "custom_storages.StaticStorage"
     DEFAULT_FILE_STORAGE = "custom_storages.MediaStorage"
-
     STATICFILES_LOCATION = "static"
     MEDIAFILES_LOCATION = "media"
 
