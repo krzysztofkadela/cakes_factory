@@ -97,6 +97,9 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
+# X_Frame_Option allow only ui.dev
+X_FRAME_OPTIONS = 'ALLOW-FROM https://ui.dev'
+
 
 ROOT_URLCONF = 'cakestore.urls'
 
