@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from home.views import CustomSignupView
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,6 +32,11 @@ urlpatterns = [
     path("orders/", include("orders.urls")),  # Include Orders App URLs
     path("users/", include("users.urls")),  # Users urls
     
+]
+
+# Serve robots.txt
+urlpatterns += [
+    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
 ]
 
 if settings.DEBUG:
