@@ -6,6 +6,11 @@ from django.contrib.auth import login, logout, authenticate
 
 # Create your views here.
 
+
+# Custom 404 page view:
+def custom_404_view(request, exception):
+    return render(request, 'home/404.html', status=404)
+
 # Home view extanded to display 'welcome back message'.
 def home_view(request):
     if request.user.is_authenticated:

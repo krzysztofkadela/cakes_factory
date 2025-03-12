@@ -22,7 +22,7 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ✅ Load environment variables only if .env exists (Prevents errors on Heroku)
+# Load environment variables only if .env exists (Prevents errors on Heroku)
 if os.path.exists(os.path.join(BASE_DIR, ".env")):
     load_dotenv(os.path.join(BASE_DIR, ".env"))
 
@@ -234,7 +234,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# ✅ AWS S3 Storage Configuration
+# AWS S3 Storage Configuration
 AWS_STORAGE_BUCKET_NAME = "cake-factory-65cd55cbb35d"
 AWS_S3_REGION_NAME = "eu-west-1"
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -246,19 +246,19 @@ AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=94608000",
 }
 
-# ✅ Define locations for Static & Media files
+# Define locations for Static & Media files
 STATICFILES_LOCATION = "static"
 MEDIAFILES_LOCATION = "media"
 
-# ✅ Use Custom Storage Classes
+# Use Custom Storage Classes
 STATICFILES_STORAGE = "custom_storages.StaticStorage"
 DEFAULT_FILE_STORAGE = "custom_storages.MediaStorage"
 
-# ✅ Set Static and Media URLs
+# Set Static and Media URLs
 STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/"
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/"
 
-# ✅ For Local Development, use normal filesystem
+# For Local Development, use normal filesystem
 if os.getenv("DEVELOPMENT") == "True":
     STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"

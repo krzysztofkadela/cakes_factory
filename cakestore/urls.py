@@ -19,9 +19,10 @@ from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from home.views import CustomSignupView
+from home.views import CustomSignupView, custom_404_view
 from home.sitemaps import StaticViewSitemap, ProductSitemap
 from django.views.generic import TemplateView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -49,6 +50,8 @@ sitemaps = {
 urlpatterns += [
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
 ]
+
+handler404 = custom_404_view
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
