@@ -58,13 +58,13 @@
     <!-- Admin Section (Only shows if user is superuser) -->
     {% if user.is_superuser %}
     <h2 class="mt-5">🔧 Admin Panel</h2>
-    
+
     <!-- Admin Management Buttons -->
-    <div class="mb-4">
-        <a href="{% url 'manage_products' %}" class="btn btn-primary">🍰 Manage Products</a>
-        <a href="{% url 'manage_subscriptions' %}" class="btn btn-secondary">📧 Manage Subscriptions</a>
-        <a href="{% url 'manage_users' %}" class="btn btn-warning">👥 Manage Users</a>
-        <a href="{% url 'manage_orders' %}" class="btn btn-info">🛒 Manage Orders</a>
+    <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 my-4">
+        <a href="{% url 'manage_products' %}" class="btn btn-primary btn-lg">🛍 Manage Products</a>
+        <a href="{% url 'manage_users' %}" class="btn btn-info btn-lg">👥 Manage Users</a>
+        <a href="{% url 'manage_orders' %}" class="btn btn-warning btn-lg">📦 Manage Orders</a>
+        <a href="{% url 'manage_subscriptions' %}" class="btn btn-success btn-lg">📧 Manage Subscriptions</a>
     </div>
     {% endif %}
 </div>
