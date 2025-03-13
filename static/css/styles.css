@@ -117,47 +117,55 @@ main {
   border-color: #5D4037;
 }
 
-/* === Messages & Alerts (Improved Visibility) === */
+/* === Messages & Alerts === */
 .messages-container {
   position: fixed;
-  top: 90px;  /* Adjust based on navbar height */
+  top: 90px;  /* Adjusted to fit below the navbar */
   right: 20px;
   max-width: 400px;
+  min-width: 300px;
   z-index: 9999;
   animation: fadeIn 0.5s ease-in-out;
 }
 
+/* Soft & Transparent Alert Backgrounds */
 .alert {
   padding: 12px 18px;
   border-radius: 8px;
   font-weight: 500;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
-  opacity: 1; /* Ensure visibility */
-}
-/* ✅ Fix Message Colors */
-.alert-success {
-  background-color: #28a745 !important;
-  color: white !important;
-  border-left: 5px solid #1e7e34;
-}
-/* ✅ Fix for welcome message not being visible */
-.alert-info {
-  background-color: #17a2b8; /* Light Blue */
-  color: white;
-  border-left: 5px solid #117a8b;
-}
-.alert-warning {
-  background-color: #ffc107 !important;
-  color: #212529 !important;
-  border-left: 5px solid #d39e00;
-}
-.alert-danger {
-  background-color: #dc3545 !important;
-  color: white !important;
-  border-left: 5px solid #b02a37;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.15);
+  opacity: 0.95; /* Slight transparency */
 }
 
-/* ✅ Smooth Fade-Out Effect */
+/* Success - Light Green with Transparency */
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.8); /* Green */
+  color: white;
+  border-left: 5px solid rgba(30, 126, 52, 0.9); /* Darker Green */
+}
+
+/* Error - Soft Red */
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.8); /* Red */
+  color: white;
+  border-left: 5px solid rgba(176, 42, 55, 0.9);
+}
+
+/* Warning - Soft Yellow */
+.alert-warning {
+  background-color: rgba(255, 193, 7, 0.85); /* Yellow */
+  color: #5D4037; /* Dark Chocolate */
+  border-left: 5px solid rgba(211, 158, 0, 0.9);
+}
+
+/* Info - Soft Gold */
+.alert-info {
+  background-color: rgba(232, 195, 158, 0.85); /* Soft Gold */
+  color: #5D4037; /* Dark Chocolate */
+  border-left: 5px solid rgba(180, 140, 100, 0.9);
+}
+
+/* Smooth Fade-Out Effect */
 @keyframes fadeOut {
   from { opacity: 1; }
   to { opacity: 0; }
@@ -170,24 +178,27 @@ main {
   transition: opacity 0.5s ease-in-out;
 }
 
-.alert-dismissible.fade.show {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.alert-dismissible.fade.hide {
-  animation: fadeOut 0.5s ease-in-out;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* ✅ Adjust Close Button for Readability */
-.alert .btn-close {
+/* ✅ Custom Close Button */
+.custom-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; /* Small square */
+  height: 24px;
+  background-color: #5D4037; /* Dark Chocolate */
   color: white;
-  font-size: 1.2rem;
-  opacity: 0.8;
+  border: 2px solid white; /* White border */
+  border-radius: 4px; /* Slight rounding */
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease-in-out;
 }
-.alert .btn-close:hover {
-  opacity: 1;
+
+/* ✅ Hover effect */
+.custom-close-btn:hover {
+  background-color: #3E2C27; /* Slightly darker chocolate */
+  transform: scale(1.1);
 }
 
 /* === Checkout Form Enhancements === */
