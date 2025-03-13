@@ -52,9 +52,10 @@ def custom_logout_view(request):
     messages.info(request, "You have successfully logged out.")
     return redirect("home")
 
+# test for messages displaying
 def test_messages(request):
-    messages.success(request, "✅ Success Message Applied!")
-    messages.error(request, "❌ Error Message Applied!")
-    messages.warning(request, "⚠️ Warning Message Applied!")
-    messages.info(request, "ℹ️ Info Message Applied!")
+    messages.success(request, "Success Message Applied!")
+    messages.error(request, "Error Message Applied!")
+    messages.warning(request, "Warning Message Applied!")
+    messages.info(request, "Info Message Applied!")
     return redirect("home")
