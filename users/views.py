@@ -1,55 +1,36 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
 from .forms import CustomUserForm
 from .models import CustomUser
 from orders.models import Order
-from products.models import Product  # Ensure you have a Product model in products app
+from products.models import Product
+from newsletter.models import NewsletterSubscriber
 
 @login_required
 def user_profile(request):
-    """
-    User profile page displaying personal details and order history.
-    If user is superuser, also display all users, all orders, and all products.
-    """
-    # Regular user order history
+    """User profile displaying personal details and order history."""
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
 
-    # Prepare context for regular user
     context = {
         "user": request.user,
         "orders": orders,
     }
 
-    # If user is superuser, pass admin data
-    if request.user.is_superuser:
-        all_users = CustomUser.objects.all()
-        all_orders = Order.objects.all().order_by("-created_at")
-        all_products = Product.objects.all()
-
-        context.update({
-            "all_users": all_users,
-            "all_orders": all_orders,
-            "all_products": all_products,
-        })
-
     return render(request, "users/profile.html", context)
 
 @login_required
 def edit_profile(request):
-    """
-    Allow a logged-in user to edit shipping/billing details.
-    """
+    """Allow user to edit their details."""
     if request.method == "POST":
         form = CustomUserForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Your profile has been updated!")
+            messages.success(request, "Profile updated successfully!")
             return redirect("user_profile")
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, "Please correct errors below.")
     else:
         form = CustomUserForm(instance=request.user)
 
@@ -58,13 +39,33 @@ def edit_profile(request):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def toggle_user_status(request, user_id):
-    """Activate or deactivate a user's account."""
     target_user = get_object_or_404(CustomUser, id=user_id)
-    if target_user.is_active:
-        target_user.is_active = False
-        messages.info(request, f"User {target_user.username} deactivated.")
-    else:
-        target_user.is_active = True
-        messages.success(request, f"User {target_user.username} activated.")
+    target_user.is_active = not target_user.is_active
     target_user.save()
-    return redirect("user_profile")
+    status = "activated" if target_user.is_active else "deactivated"
+    messages.success(request, f"User {target_user.username} {status}.")
+    return redirect("manage_users")
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def manage_users(request):
+    users = CustomUser.objects.all()
+    return render(request, "users/manage_users.html", {"users": users})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def manage_orders(request):
+    orders = Order.objects.all().order_by("-created_at")
+    return render(request, "users/manage_orders.html", {"orders": orders})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def manage_products(request):
+    products = Product.objects.all()
+    return render(request, "users/manage_products.html", {"products": products})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def manage_subscriptions(request):
+    subscriptions = NewsletterSubscriber.objects.all()
+    return render(request, "users/manage_subscriptions.html", {"subscriptions": subscriptions})

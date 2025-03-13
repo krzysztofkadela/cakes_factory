@@ -125,7 +125,7 @@ def add_product(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Product added successfully!")
-            return redirect("user_profile")  # Redirect to profile page
+            return redirect("manage_products")  # Redirect to profile page
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -142,7 +142,7 @@ def edit_product(request, product_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Product updated successfully!")
-            return redirect("user_profile")
+            return redirect("manage_products")
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -157,6 +157,6 @@ def delete_product(request, product_id):
     if request.method == "POST":
         product.delete()
         messages.success(request, "Product deleted successfully!")
-        return redirect("user_profile")
+        return redirect("manage_products")
 
     return render(request, "products/delete_product.html", {"product": product})

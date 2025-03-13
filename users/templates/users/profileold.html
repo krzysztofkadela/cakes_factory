@@ -26,20 +26,7 @@
         </div>
     </div>
 
-    <!-- Billing Address -->
-    <div class="card mb-4">
-        <div class="card-header">Billing Address</div>
-        <div class="card-body">
-            <p><strong>Full Name:</strong> {{ user.billing_full_name|default:"Not provided" }}</p>
-            <p><strong>Phone:</strong> {{ user.billing_phone|default:"Not provided" }}</p>
-            <p><strong>Address:</strong> {{ user.billing_street_address1 }}, {{ user.billing_street_address2 }}</p>
-            <p><strong>City:</strong> {{ user.billing_city }}</p>
-            <p><strong>Postcode:</strong> {{ user.billing_postcode }}</p>
-            <p><strong>Country:</strong> {{ user.billing_country }}</p>
-        </div>
-    </div>
-
-    <a href="{% url 'edit_profile' %}" class="btn btn-success">Edit Profile</a> 
+    <a href="{% url 'edit_profile' %}" class="btn btn-success">Edit Profile</a>
 
     <!-- Order History -->
     <h3 class="mb-3">🛍 Order History</h3>
@@ -66,6 +53,106 @@
     </table>
     {% else %}
     <p class="alert alert-warning">No orders found.</p>
+    {% endif %}
+
+    <!-- Admin Section (Only shows if user is superuser) -->
+    {% if user.is_superuser %}
+    <h2 class="mt-5">🔧 Admin Panel</h2>
+
+    <!-- Manage Users -->
+    <div class="card mb-4">
+        <div class="card-header">Manage Users</div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in all_users %}
+                    <tr>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>{% if u.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        <td>
+                            <!-- Toggle user status -->
+                            <a href="{% url 'toggle_user_status' u.id %}"
+                               class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Manage Orders -->
+    <div class="card mb-4">
+        <div class="card-header">Manage Orders</div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>User</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in all_orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.user.username }}</td>
+                        <td>€{{ order.total_price|floatformat:2 }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>
+                            <a href="{% url 'update_order_status' order.id %}" class="btn btn-sm btn-warning">Update</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Manage Products -->
+    <div class="card mb-4">
+        <div class="card-header">Manage Products</div>
+        <div class="card-body">
+            <a href="{% url 'add_product' %}" class="btn btn-primary mb-3">➕ Add Product</a>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in all_products %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>€{{ product.price }}</td>
+                        <td>{{ product.stock }}</td>
+                        <td>
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-success">Edit</a>
+                            <a href="{% url 'delete_product' product.id %}" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
