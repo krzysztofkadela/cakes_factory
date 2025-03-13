@@ -14,7 +14,7 @@ def custom_404_view(request, exception):
 # Home view extanded to display 'welcome back message'.
 def home_view(request):
     if request.user.is_authenticated:
-        messages.success(request, f"Welcome back, {request.user.username}! 🎉")
+        messages.info(request, f"Welcome back, {request.user.username}! 🎉")
     return render(request, "home/home.html")
 
 
@@ -41,7 +41,7 @@ def custom_login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
+            messages.info(request, f"Welcome back, {user.username}!")
             return redirect("home")
         else:
             messages.error(request, "Invalid username or password.")
@@ -50,4 +50,11 @@ def custom_login_view(request):
 def custom_logout_view(request):
     logout(request)
     messages.info(request, "You have successfully logged out.")
+    return redirect("home")
+
+def test_messages(request):
+    messages.success(request, "✅ Success Message Applied!")
+    messages.error(request, "❌ Error Message Applied!")
+    messages.warning(request, "⚠️ Warning Message Applied!")
+    messages.info(request, "ℹ️ Info Message Applied!")
     return redirect("home")

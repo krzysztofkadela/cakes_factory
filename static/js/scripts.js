@@ -4,17 +4,20 @@
 * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
 */
 
-// 🟢 Auto-close alerts after 5 seconds
+// 🟢 Auto-close alerts after 5 seconds with fade-out effect
 document.addEventListener("DOMContentLoaded", function () {
     setTimeout(function () {
         let alerts = document.querySelectorAll(".alert");
         alerts.forEach(alert => {
-            if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
-                let bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
+            alert.classList.add("fade-out"); // Apply fade-out CSS
+            setTimeout(() => {
+                if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
+                    let bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 500); // Delay removal to match fade-out animation
         });
-    }, 5000); 
+    }, 5000);
 });
 
 // 🛒 Add to Cart with AJAX

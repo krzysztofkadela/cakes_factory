@@ -117,54 +117,77 @@ main {
   border-color: #5D4037;
 }
 
-/* === Messages & Alerts (Improved Styling) === */
-/* === Messages & Alerts (Improved Styling) === */
+/* === Messages & Alerts (Improved Visibility) === */
 .messages-container {
   position: fixed;
-  top: 80px;
+  top: 90px;  /* Adjust based on navbar height */
   right: 20px;
   max-width: 400px;
-  z-index: 1050;
+  z-index: 9999;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-/* ✅ Increase padding & add border for better visibility */
 .alert {
-  padding: 15px 20px;
+  padding: 12px 18px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 500;
   box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
-  opacity: 0.95;
+  opacity: 1; /* Ensure visibility */
 }
-
-/* ✅ Improved Colors for Message Types */
+/* ✅ Fix Message Colors */
 .alert-success {
-  background-color: #28a745; /* Green */
-  color: white;
+  background-color: #28a745 !important;
+  color: white !important;
   border-left: 5px solid #1e7e34;
 }
-
+/* ✅ Fix for welcome message not being visible */
 .alert-info {
   background-color: #17a2b8; /* Light Blue */
   color: white;
   border-left: 5px solid #117a8b;
 }
-
 .alert-warning {
-  background-color: #ffc107; /* Yellow */
-  color: #212529;
+  background-color: #ffc107 !important;
+  color: #212529 !important;
   border-left: 5px solid #d39e00;
 }
-
 .alert-danger {
-  background-color: #dc3545; /* Red */
-  color: white;
+  background-color: #dc3545 !important;
+  color: white !important;
   border-left: 5px solid #b02a37;
 }
 
-/* ✅ Make messages more readable */
-.alert-dismissible .btn-close {
+/* ✅ Smooth Fade-Out Effect */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-out {
+  animation: fadeOut 0.5s ease-in-out;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.alert-dismissible.fade.show {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.alert-dismissible.fade.hide {
+  animation: fadeOut 0.5s ease-in-out;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ✅ Adjust Close Button for Readability */
+.alert .btn-close {
   color: white;
-  filter: invert(1);
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+.alert .btn-close:hover {
+  opacity: 1;
 }
 
 /* === Checkout Form Enhancements === */
