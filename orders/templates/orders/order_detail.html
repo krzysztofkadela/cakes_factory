@@ -1,24 +1,50 @@
 {% extends "base.html" %}
 {% block title %}Order Detail - #{{ order.id }}{% endblock %}
 {% block content %}
-<h2>Order #{{ order.order_number }}</h2>
-<p>Status: {{ order.status }}</p>
-<p>Date: {{ order.created_at|date:"d M Y" }}</p>
-<p>Grand Total: €{{ order.grand_total|floatformat:2 }}</p>
-<hr>
+<div class="container">
+    <h2 class="mb-3">Order #{{ order.order_number }}</h2>
 
-<h3>Order Items:</h3>
-<ul>
-    {% for item in order.items.all %}
-    <li>
-        {{ item.quantity }} x {{ item.product.name }}
-        {% if item.size %}
-            (Size: {{ item.size.name }})
-        {% else %}
-            (No size)
-        {% endif %}
-        = €{{ item.line_total|floatformat:2 }}
-    </li>
-    {% endfor %}
-</ul>
+    <!-- Order Status Badge -->
+    <p>
+        <span class="badge {% if order.status == 'paid' %}bg-success{% elif order.status == 'pending' or order.status == 'failed' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+            {{ order.get_status_display }}
+        </span>
+    </p>
+
+    <p><strong>Date:</strong> {{ order.created_at|date:"d M Y" }}</p>
+    <p><strong>Grand Total:</strong> €{{ order.grand_total|floatformat:2 }}</p>
+    <hr>
+
+    <!-- Order Items List -->
+    <h3>Order Items:</h3>
+    <ul class="list-group">
+        {% for item in order.items.all %}
+        <li class="list-group-item">
+            <strong>{{ item.quantity }} x {{ item.product.name }}</strong>
+            {% if item.size %}
+                (Size: {{ item.size.name }})
+            {% else %}
+                (No size)
+            {% endif %}
+            = <strong>€{{ item.line_total|floatformat:2 }}</strong>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Retry Payment Button (Only for pending/failed orders) -->
+    {% if order.status == "pending" or order.status == "failed" %}
+    <div class="mt-3">
+        <a href="{{ order.get_stripe_checkout_url }}" class="btn btn-primary">
+            <i class="bi bi-credit-card"></i> Retry Payment
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Back to Order History -->
+    <div class="mt-3">
+        <a href="{% url 'order_history' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Order History
+        </a>
+    </div>
+</div>
 {% endblock %}

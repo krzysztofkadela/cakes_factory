@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, webhook  # ✅ Importing views and webhooks correctly
+from . import views, webhook  # Importing views and webhook
 
 urlpatterns = [
     # Cart Management
@@ -11,8 +11,8 @@ urlpatterns = [
     # Checkout & Orders
     path("checkout/", views.checkout_page, name="checkout"),
     path("orders/", views.order_history, name="order_history"),
-    path("custom_order/<int:product_id>/", views.custom_order, name="custom_order"),
-    path("order/<int:order_id>/", views.order_detail, name="order_detail"),
+    path("order/<str:order_number>/", views.order_detail, name="order_detail"),  # Ensure this uses order_number
+    path("order/<str:order_number>/retry/", views.retry_payment, name="retry_payment"),  
     path("update-order-status/<int:order_id>/", views.update_order_status, name="update_order_status"),
 
     # Stripe Checkout & Webhooks
@@ -20,6 +20,6 @@ urlpatterns = [
     path("success/", views.payment_success, name="payment_success"),
     path("cancel/", views.payment_cancel, name="payment_cancel"),
 
-    # ✅ Secure Stripe Webhook
+    # Secure Stripe Webhook
     path("webhook/", webhook.webhook, name="stripe_webhook"),
 ]

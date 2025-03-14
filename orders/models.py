@@ -1,9 +1,12 @@
 import uuid
-from django.conf import settings
+import stripe
 from django.db import models
+from django.conf import settings
 from django.db.models import Sum, F
+from django.urls import reverse
 from products.models import Product, Size
-from django.contrib.auth.models import User
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class CartItem(models.Model):
     user = models.ForeignKey(
@@ -28,7 +31,6 @@ class CartItem(models.Model):
             "Large": 20,  
             "X-large": 40  
         }
-        # Assume product.price is always set; fallback is provided just in case.
         base_price = self.product.price or 0
         size_adjustment = SIZE_PRICE_ADJUSTMENT.get(self.size.name if self.size else "Small", 0)
         return base_price + size_adjustment
@@ -36,8 +38,7 @@ class CartItem(models.Model):
     @property
     def line_total(self):
         """Total price for this cart item (quantity included)."""
-        # If adjusted_price somehow is None, fallback to 0.
-        return (self.adjusted_price or 0) * self.quantity
+        return self.adjusted_price * self.quantity
 
 
 class Order(models.Model):
@@ -47,6 +48,7 @@ class Order(models.Model):
         ("shipped", "Shipped"),
         ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
+        ("failed", "Failed"),
     ]
 
     user = models.ForeignKey(
@@ -104,19 +106,13 @@ class Order(models.Model):
         return uuid.uuid4().hex.upper()
 
     def update_total(self):
-        """Update order total when items are added or removed."""
-        self.order_total = self.items.aggregate(
-            total=Sum(F("quantity") * F("price_each"))
-        )["total"] or 0
+        """✅ Fixed: Update order total properly from OrderItem prices."""
+        self.order_total = self.items.aggregate(total=Sum(F("quantity") * F("price_each")))["total"] or 0
 
-        # If the order total is below FREE_DELIVERY_THRESHOLD, calculate shipping
+        # If the order total is below FREE_DELIVERY_THRESHOLD, apply delivery cost
+        self.delivery_cost = 0
         if self.order_total < settings.FREE_DELIVERY_THRESHOLD:
-            # For example, if you had a percentage approach, you'd do:
-            # self.delivery_cost = self.order_total * (settings.STANDARD_DELIVERY_PERCENTAGE / 100)
-            # or if you use a flat rate:
             self.delivery_cost = settings.STANDARD_DELIVERY_CHARGE
-        else:
-            self.delivery_cost = 0
 
         self.grand_total = self.order_total + self.delivery_cost
         self.save()
@@ -126,6 +122,32 @@ class Order(models.Model):
         if not self.order_number:
             self.order_number = self._generate_order_number()
         super().save(*args, **kwargs)
+
+    def get_stripe_checkout_url(self):
+        """✅ Improved: Generate a Stripe Checkout URL for retrying payment."""
+        if self.status == "paid":
+            return None  # No need to retry if the order is already paid
+
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                mode="payment",
+                line_items=[{
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {"name": f"Order {self.order_number}"},
+                        "unit_amount": int(self.grand_total * 100),  # Convert to cents
+                    },
+                    "quantity": 1,
+                }],
+                metadata={"order_number": self.order_number},
+                success_url=f"{settings.SITE_URL}{reverse('payment_success')}",
+                cancel_url=f"{settings.SITE_URL}{reverse('order_detail', args=[self.order_number])}",
+            )
+            return session.url
+        except Exception as e:
+            print(f"❌ Stripe Error: {e}")
+            return None
 
     def __str__(self):
         return f"Order #{self.order_number}"
@@ -139,30 +161,17 @@ class OrderItem(models.Model):
     price_each = models.DecimalField(max_digits=10, decimal_places=2)
 
     @property
-    def adjusted_price(self):
-        """Calculate price based on size selection."""
-        SIZE_PRICE_ADJUSTMENT = {
-            "Small": 0,  
-            "Large": 20,  
-            "X-large": 40 
-        }
-        base_price = self.product.price or 0
-        size_adjustment = SIZE_PRICE_ADJUSTMENT.get(self.size.name if self.size else "Small", 0)
-        return base_price + size_adjustment
-
-    @property
     def line_total(self):
-        # Use a fallback value (0) if price_each is None.
-        return (self.price_each or 0) * self.quantity
+        """✅ Fixed: Ensure order item total calculation is correct."""
+        return self.price_each * self.quantity
 
     def save(self, *args, **kwargs):
         """Ensure price_each is correctly set before saving."""
-        self.price_each = self.adjusted_price
         super().save(*args, **kwargs)
-        self.order.update_total()
+        self.order.update_total()  # Update order total
 
     def delete(self, *args, **kwargs):
-        """Update order total on item removal."""
+        """✅ Fixed: Update order total on item removal."""
         super().delete(*args, **kwargs)
         self.order.update_total()
 

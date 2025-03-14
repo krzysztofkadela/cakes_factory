@@ -26,6 +26,11 @@ body {
   color: #5D4037; /* Rich Chocolate */
 }
 
+/* Hide the main section on the homepage */
+body.homepage main {
+  display: none;
+}
+
 /* === Navigation Bar (Glassmorphism) === */
 .navbar {
   background-color: rgba(232, 195, 158, 0.9); /* Soft Gold with slight transparency */
@@ -214,7 +219,7 @@ main {
 }
 
 .py-5 {
-  padding-top: 0 !important;
+  padding-top: 12vh !important;
   padding-bottom: 0 !important;
 }
 

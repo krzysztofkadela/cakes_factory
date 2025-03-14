@@ -138,6 +138,8 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
+SITE_URL = "http://localhost:8000" 
+
 # Email Backend (For Development - Change for Production)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

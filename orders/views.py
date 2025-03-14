@@ -454,6 +454,42 @@ def payment_success(request):
 def payment_cancel(request):
     return render(request, "orders/payment_cancel.html")
 
+@login_required
+def retry_payment(request, order_number):
+    """
+    Allows user to retry a payment for a pending or failed order.
+    """
+    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+
+    if order.status == "paid":
+        messages.info(request, "This order is already paid.")
+        return redirect("order_detail", order_number=order.order_number)
+
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[{
+                "price_data": {
+                    "currency": "eur",
+                    "product_data": {
+                        "name": f"Order {order.order_number}",
+                    },
+                    "unit_amount": int(order.grand_total * 100),  # Convert to cents
+                },
+                "quantity": 1,
+            }],
+            metadata={"order_number": order.order_number},
+            success_url=f"{settings.SITE_URL}{reverse('payment_success')}",
+            cancel_url=f"{settings.SITE_URL}{reverse('order_detail', args=[order.order_number])}",
+        )
+        return redirect(session.url)
+    except stripe.error.StripeError as e:
+        messages.error(request, f"Stripe error: {str(e)}")
+        return redirect("order_detail", order_number=order.order_number)
+
 @csrf_exempt
 def stripe_webhook(request):
     """Listen for Stripe webhooks and pass them to the handler."""
@@ -483,12 +519,11 @@ def stripe_webhook(request):
 # order_detail view.
 
 @login_required
-def order_detail(request, order_id):
-
+def order_detail(request, order_number):
     """
     Display details of a specific order belonging to the logged-in user.
     """
-    order = get_object_or_404(Order, pk=order_id, user=request.user)
+    order = get_object_or_404(Order, order_number=order_number, user=request.user)
     # For security, ensure the order belongs to the current user
     return render(request, "orders/order_detail.html", {"order": order})
 
