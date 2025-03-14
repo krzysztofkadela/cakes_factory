@@ -44,15 +44,15 @@
         <tbody>
             {% for order in orders %}
             <tr>
-                <td><a href="{% url 'order_detail' order.order_number %}">#{{ order.order_number }}</a></td>
+                <td><a href="{% url 'order_detail' order.order_number|stringformat:"s" %}">#{{ order.order_number }}</a></td>
                 <td>{{ order.created_at|date:"d M Y" }}</td>
                 <td>€{{ order.grand_total|floatformat:2 }}</td>
                 <td>{{ order.get_status_display }}</td>
                 <td>
                     {% if order.status == "pending" or order.status == "failed" %}
-                        <a href="{% url 'retry_payment' order.order_number %}" class="btn btn-sm btn-warning">
-                            🔄 Retry Payment
-                        </a>
+                    <a href="{% url 'retry_payment' order.order_number|stringformat:"s" %}" class="btn btn-sm btn-warning">
+                        🔄 Retry Payment
+                    </a>
                     {% endif %}
                 </td>
             </tr>
@@ -61,18 +61,6 @@
     </table>
     {% else %}
     <p class="alert alert-warning">No orders found.</p>
-    {% endif %}
-
-    <!-- Admin Section (Only visible for superusers) -->
-    {% if user.is_superuser %}
-    <h2 class="mt-5">🔧 Admin Panel</h2>
-
-    <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 my-4">
-        <a href="{% url 'manage_products' %}" class="btn btn-primary btn-lg">🛍 Manage Products</a>
-        <a href="{% url 'manage_users' %}" class="btn btn-info btn-lg">👥 Manage Users</a>
-        <a href="{% url 'manage_orders' %}" class="btn btn-warning btn-lg">📦 Manage Orders</a>
-        <a href="{% url 'manage_subscriptions' %}" class="btn btn-success btn-lg">📧 Manage Subscriptions</a>
-    </div>
     {% endif %}
 </div>
 {% endblock %}
