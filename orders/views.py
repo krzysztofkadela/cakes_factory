@@ -527,19 +527,24 @@ def order_detail(request, order_number):
     # For security, ensure the order belongs to the current user
     return render(request, "orders/order_detail.html", {"order": order})
 
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
-def update_order_status(request, order_id):
-    """Admin can update the status of an order."""
-    order = get_object_or_404(Order, id=order_id)
-    # For example, toggle status from 'pending' to 'shipped' or any logic you want:
-    if order.status == "pending":
-        order.status = "shipped"
-        messages.success(request, f"Order {order.id} marked as shipped.")
-    else:
-        order.status = "pending"
-        messages.info(request, f"Order {order.id} reverted to pending.")
-    order.save()
+def manage_orders(request):
+    """Admin can view all orders and manage them."""
+    orders = Order.objects.all().order_by("-created_at")
+    return render(request, "orders/manage_orders.html", {"orders": orders})
 
-    # Redirect back to user profile or wherever you want
-    return redirect("user_profile")
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def update_order_status(request, order_number, status):
+    """Allows Admins to Update Order Status."""
+    order = get_object_or_404(Order, order_number=order_number)
+    if status in ["pending", "paid", "shipped", "delivered", "cancelled", "failed"]:
+        order.status = status
+        order.save()
+        messages.success(request, f"Order {order.order_number} marked as {status}.")
+    else:
+        messages.error(request, "Invalid order status.")
+    
+    return redirect("manage_orders")

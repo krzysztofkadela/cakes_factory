@@ -1,8 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Manage Subscriptions{% endblock %}
+{% block title %}Manage Orders - Admin{% endblock %}
 {% block content %}
 <div class="container">
-    <h2>📧 Manage Subscriptions</h2>
-    <!-- Subscription management functionality here -->
+    <h2 class="mb-4">📦 Manage Orders</h2>
+
+    {% if orders %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>User</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><a href="{% url 'order_detail' order.order_number %}">#{{ order.order_number }}</a></td>
+                <td>{{ order.user|default:"Guest" }}</td>
+                <td>{{ order.created_at|date:"d M Y" }}</td>
+                <td>€{{ order.grand_total|floatformat:2 }}</td>
+                <td>
+                    <span class="badge {% if order.status == 'paid' %}bg-success{% elif order.status == 'pending' or order.status == 'failed' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <a href="{% url 'update_order_status' order.order_number 'paid' %}" class="btn btn-sm btn-success">✔ Paid</a>
+                        <a href="{% url 'update_order_status' order.order_number 'shipped' %}" class="btn btn-sm btn-info">🚚 Shipped</a>
+                        <a href="{% url 'update_order_status' order.order_number 'delivered' %}" class="btn btn-sm btn-primary">📦 Delivered</a>
+                        <a href="{% url 'update_order_status' order.order_number 'cancelled' %}" class="btn btn-sm btn-danger">❌ Cancel</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="alert alert-warning">No orders found.</p>
+    {% endif %}
 </div>
 {% endblock %}

@@ -22,4 +22,8 @@ urlpatterns = [
 
     # Secure Stripe Webhook
     path("webhook/", webhook.webhook, name="stripe_webhook"),
+
+    # ✅ Admin Order Management
+    path("admin/manage-orders/", views.manage_orders, name="manage_orders"),
+    path("admin/update-order-status/<str:order_number>/<str:status>/", views.update_order_status, name="update_order_status"),
 ]
