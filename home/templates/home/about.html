@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}  <!-- ✅ Load static files here if needed -->
+
+{% block title %}About Us - Cake Factory{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <h1 class="my-4">🎂 About Cake Factory</h1>
+    <p class="lead">Welcome to Cake Factory, where we bake happiness into every cake! 🍰</p>
+
+    <div class="row my-5">
+        <div class="col-md-6">
+            <h3>🥐 Our Story</h3>
+            <p>
+                Founded in 2025, Cake Factory started with a simple idea: to create delicious, high-quality cakes 
+                that bring people together. From birthdays to weddings, we make every occasion sweeter!
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h3>🍩 Our Mission</h3>
+            <p>
+                We are committed to using only the finest ingredients, crafting mouthwatering cakes, 
+                and delivering them fresh to your doorstep.
+            </p>
+        </div>
+    </div>
+
+    <h3>👩‍🍳 Meet Our Team</h3>
+    <p>We are a group of passionate bakers, decorators, and dessert lovers who love bringing joy to our customers.</p>
+
+    <h3>📍 Visit Us</h3>
+    <p>
+        📍 <strong>Location:</strong> 123 Sweet Street, Dessert City, CA 90001<br>
+        ☎ <strong>Phone:</strong> +1 234-567-8900<br>
+        ✉ <strong>Email:</strong> contact@cakefactory.com
+    </p>
+
+    <h3>🛍 Order Online</h3>
+    <p>Browse our delicious cakes and cupcakes <a href="{% url 'product_list' %}">here</a>.</p>
+</div>
+{% endblock %}

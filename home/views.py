@@ -17,6 +17,9 @@ def home_view(request):
         messages.info(request, f"Welcome back, {request.user.username}! 🎉")
     return render(request, "home/home.html")
 
+def about(request):
+    return render(request, "home/about.html")
+
 
 class CustomSignupView(SignupView):
     def form_valid(self, form):
@@ -50,12 +53,4 @@ def custom_login_view(request):
 def custom_logout_view(request):
     logout(request)
     messages.info(request, "You have successfully logged out.")
-    return redirect("home")
-
-# test for messages displaying
-def test_messages(request):
-    messages.success(request, "Success Message Applied!")
-    messages.error(request, "Error Message Applied!")
-    messages.warning(request, "Warning Message Applied!")
-    messages.info(request, "Info Message Applied!")
     return redirect("home")
