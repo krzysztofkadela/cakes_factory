@@ -10,15 +10,28 @@ from .models import NewsletterSubscriber
 def newsletter_signup(request):
     if request.method == "POST":
         form = NewsletterForm(request.POST)
+        
         if form.is_valid():
             email = form.cleaned_data["email"]
-            # Prevent duplicate subscriptions
+            
+            # Check if email is already subscribed
             if NewsletterSubscriber.objects.filter(email=email).exists():
-                messages.warning(request, "You are already subscribed!")
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse({"error": "⚠️ This email is already subscribed!"}, status=400)
+                messages.warning(request, "⚠️ This email is already subscribed!")
             else:
                 form.save()
-                messages.success(request, "Thank you for subscribing!")
-            return redirect("home")  # Redirect to home after subscribing
-        else:
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse({"success": "✅ Thank you for subscribing!"}, status=200)
+                messages.success(request, "✅ Thank you for subscribing!")
+
+            return redirect("home")  # Redirect after form submission
+
+        # If form is invalid
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({"error": form.errors}, status=400)
-    return redirect("home")
+
+        messages.error(request, "⚠️ Invalid email address. Please try again.")
+        return redirect("home")
+
+    return redirect("home")  # Redirect if accessed without POST

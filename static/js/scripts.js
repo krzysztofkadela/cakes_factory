@@ -4,7 +4,7 @@
 * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
 */
 
-// 🟢 Auto-close alerts after 5 seconds with fade-out effect
+// Auto-close alerts after 5 seconds with fade-out effect
 document.addEventListener("DOMContentLoaded", function () {
     setTimeout(function () {
         let alerts = document.querySelectorAll(".alert");
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 5000);
 });
 
-// 🛒 Add to Cart with AJAX
+// Add to Cart with AJAX
 document.addEventListener("DOMContentLoaded", function () {
     const addToCartForms = document.querySelectorAll(".add-to-cart-form");
 
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// 🏷️ Dynamic Price Update
+// Dynamic Price Update
 document.addEventListener("DOMContentLoaded", function () {
     const sizeDropdown = document.getElementById("size");
     const priceDisplay = document.getElementById("product-price");
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// ✅ Checkout Validation & Submission
+// Checkout Validation & Submission
 document.addEventListener("DOMContentLoaded", function () {
     const payButton = document.getElementById("pay-with-stripe");
     const checkoutForm = document.getElementById("checkout-form");
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// ✅ Function to validate checkout form before submitting
+// Function to validate checkout form before submitting
 function validateCheckoutForm() {
     let isValid = true;
 
@@ -147,7 +147,7 @@ function validateCheckoutForm() {
     return isValid;
 }
 
-// ✅ Displays an error message below the input field
+// Displays an error message below the input field
 function showError(field, message) {
     if (field) {
         const errorElement = document.createElement("div");
@@ -157,3 +157,37 @@ function showError(field, message) {
         field.parentNode.appendChild(errorElement);
     }
 }
+
+// Subscription form
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("newsletter-form");
+
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault(); // Stop normal form submission
+
+            let formData = new FormData(form);
+
+            fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest" // Tells Django it's an AJAX request
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let messageBox = document.getElementById("message-box");
+
+                if (data.success) {
+                    messageBox.innerHTML = `<div class="alert alert-success">${data.success}</div>`;
+                } else if (data.error) {
+                    messageBox.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                }
+
+                form.reset(); // Reset form after submission
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    }
+});

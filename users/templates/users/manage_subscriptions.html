@@ -1,45 +1,36 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Subscriptions - Cake Factory{% endblock %}
+{% block title %}Manage Newsletter Subscribers{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2 class="mb-4">📧 Manage Subscriptions</h2>
+    <h2 class="mb-4">📧 Manage Newsletter Subscribers</h2>
 
-    {% if subscriptions %}
+    {% if subscribers %}
         <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Email</th>
                     <th>Subscribed On</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for subscription in subscriptions %}
+                {% for subscriber in subscribers %}
                 <tr>
-                    <td>{{ subscription.email }}</td>
-                    <td>{{ subscription.created_at|date:"d M Y" }}</td>
+                    <td>{{ subscriber.email }}</td>
+                    <td>{{ subscriber.subscribed_at|date:"d M Y" }}</td>
                     <td>
-                        <span class="badge {% if subscription.active %}bg-success{% else %}bg-danger{% endif %}">
-                            {{ subscription.get_status_display }}
-                        </span>
-                    </td>
-                    <td>
-                        {% if subscription.active %}
-                            <a href="{% url 'toggle_subscription' subscription.id %}" class="btn btn-sm btn-warning">Unsubscribe</a>
-                        {% else %}
-                            <a href="{% url 'toggle_subscription' subscription.id %}" class="btn btn-sm btn-success">Activate</a>
-                        {% endif %}
-                        <a href="{% url 'delete_subscription' subscription.id %}" class="btn btn-sm btn-danger">Delete</a>
+                        <a href="{% url 'delete_subscription' subscriber.id %}" class="btn btn-sm btn-danger">
+                            ❌ Remove
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p class="alert alert-warning">No subscriptions found.</p>
+        <p class="alert alert-warning">No subscribers found.</p>
     {% endif %}
 </div>
 {% endblock %}
