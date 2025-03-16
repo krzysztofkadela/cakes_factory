@@ -64,8 +64,27 @@ def manage_products(request):
     products = Product.objects.all()
     return render(request, "users/manage_products.html", {"products": products})
 
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)  # Restrict access to admins
 def manage_subscriptions(request):
-    subscriptions = NewsletterSubscriber.objects.all()
-    return render(request, "users/manage_subscriptions.html", {"subscriptions": subscriptions})
+    """View all newsletter subscribers."""
+    subscribers = NewsletterSubscriber.objects.all().order_by("-subscribed_at")
+    return render(request, "users/manage_subscriptions.html", {"subscribers": subscribers})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def toggle_subscription(request, subscriber_id):
+    """Enable or disable a newsletter subscription."""
+    subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
+    subscriber.active = not subscriber.active
+    subscriber.save()
+    messages.success(request, f"Subscription status updated for {subscriber.email}.")
+    return redirect("manage_subscriptions")
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def delete_subscription(request, subscriber_id):
+    """Delete a newsletter subscription."""
+    subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
+    subscriber.delete()
+    messages.success(request, f"Subscriber {subscriber.email} deleted successfully.")
+    return redirect("manage_subscriptions")

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Subscriptions - Cake Factory{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">📧 Manage Subscriptions</h2>
+
+    {% if subscriptions %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Subscribed On</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subscription in subscriptions %}
+                <tr>
+                    <td>{{ subscription.email }}</td>
+                    <td>{{ subscription.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <span class="badge {% if subscription.active %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ subscription.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if subscription.active %}
+                            <a href="{% url 'toggle_subscription' subscription.id %}" class="btn btn-sm btn-warning">Unsubscribe</a>
+                        {% else %}
+                            <a href="{% url 'toggle_subscription' subscription.id %}" class="btn btn-sm btn-success">Activate</a>
+                        {% endif %}
+                        <a href="{% url 'delete_subscription' subscription.id %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="alert alert-warning">No subscriptions found.</p>
+    {% endif %}
+</div>
+{% endblock %}
