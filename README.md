@@ -470,9 +470,9 @@ python manage.py runserver
 #### [Menu](#features)
 
  - **Issue with Reservation Date Input**: 
-  During the initial testing phase of the reservation functionality, it was discovered that the system allowed users to make reservations for past dates. This posed a significant concern as it would lead to confusion and inaccuracies in reservation management.
+ 
    **Resolution**: 
-  The validation logic in the `ReservationForm` was updated to ensure that users cannot select a past date when trying to make a reservation. Now, only future dates are permitted for booking, enhancing the user experience and maintaining the integrity of reservations.
+ 
   
 ## Unfixed Bugs:
   * All detected bugs have been fixed.

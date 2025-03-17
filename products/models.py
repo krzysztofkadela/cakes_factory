@@ -64,13 +64,13 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # ✅ Generate slug if missing
+        # Generate slug if missing
         if not self.slug:
             self.slug = slugify(self.name)
 
         super().save(*args, **kwargs)  # Save product first
 
-        # ✅ Ensure at least one default size is assigned
+        # Ensure at least one default size is assigned
         if not self.sizes.exists():
             default_size, created = Size.objects.get_or_create(
                 name="Standard", defaults={"slug": slugify("Standard")}

@@ -264,13 +264,6 @@ By utilising the Wave Accessibility tool for ongoing development and final testi
 | As a user, I want to book a tattoo appointment based on available slots so that I can reserve a convenient time with an artist. | Yes | Please see the [error](#errors) explained for this. |
 | As a user, I want to receive a confirmation email with my appointment details after payment so that I know my booking is confirmed. | Yes | Please see the [error](#errors) explained for this. |
 
-### Consultation Booking
-
-| User Story | Requirement Met | Image |
-| ---------- | ---------------- | ----- |
-| As a customer, I want to see available dates and times for consultations so that I can select a slot that works for me. | Yes | Please see the [error](#errors) explained for this. |
-| As a customer, I want to cancel or reschedule my consultation if my plans change, with an easy-to-use interface. | Yes | Please see the [error](#errors) explained for this. |
-| As a user, I want to view my past consultations, including dates, artist details, and feedback, so that I can keep track of my sessions. | Yes | Please see the [error](#errors) explained for this. |
 
 ### Wishlist and Likes
 
@@ -320,69 +313,6 @@ By utilising the Wave Accessibility tool for ongoing development and final testi
 
 ---
 
-## Errors
-
-1. **Google Calendar API Verification**
-
-I have set up the Google Cloud Calendar API; however, an error occurs after logging in to Google and clicking the "Book a Consultation" link. The error states that the site has not been verified. 
-
-The verification process for Google Cloud is lengthy, as outlined in [Google's Help Documentation](https://support.google.com/cloud/answer/7454865?hl=en). Unfortunately, due to time constraints during the course, I was unable to complete the verification process.
-
-Despite this, I have tested the functionality by proceeding through the "unsafe" option. While I was able to successfully log in:
-<img src="READMEmedia/googlelogin.png" width="300px">
-I was ultimately unable to proceed further because the site is not verified and cannot be fully trusted by Google. This remains a known issue in the current project implementation.
-
-2. **Toast Dissmissal**
-
-**Error:**
-The toast dismissal function is not working as expected. When clicking the dismiss button inside the toast:
-```html
-<button type="button" class="ml-2 mb-1 close text-dark" data-dismiss="toast" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-</button>
-```
-Nothing happens. The toast does not close as it should.
-
-**Debugging Steps Taken:**
-- Verified Bootstrap JavaScript is Loaded:
-Checked that Bootstrap JavaScript was properly included and loaded in the project.
-
-- Ensured jQuery is Loaded (for Bootstrap 4):
-Confirmed that jQuery was loaded as Bootstrap 4 requires it for components like toast to function properly.
-
-- Checked data-dismiss Attribute:
-Ensured that the dismiss button contained the correct data-dismiss="toast" attribute.
-
-- Checked JavaScript Console for Errors:
-Inspected the browser’s developer tools console for any JavaScript errors that may be causing the issue, but found no significant errors.
-
-- Manually Triggered Dismissal:
-
-Attempted to manually hide the toast using:
-
-```
-    $('.toast').toast('hide');
-```
-
-This worked, which indicates the issue lies with the button interaction.
-
-- Checked for JavaScript Conflicts:
-Disabled other scripts and libraries temporarily to check for conflicts with Bootstrap's toast functionality.
-
-- Verified Bootstrap Toast Initialization:
-Ensured that the toast was properly initialised with:
-```
-$('.toast').toast('show');
-```
-
-- Added Custom Event Listener for Dismissal:
-
-Tried adding a custom event listener to trigger the toast dismissal:
-```
-    $('.toast .close').click(function() {
-        $(this).closest('.toast').toast('hide');
-    });
-```
 
 - Tested Across Different Browsers:
 Tried the functionality on different browsers, but the issue persists.
@@ -399,54 +329,3 @@ LightHouse is a web performance testing tool that can be used to evaluate the pe
 
 ---
 
-## Project assessment criteria CHECKLIST. Portfolio 5: Project Submission
-
-Below I have included the criteria needed in order to Pass this Project submission. I have completed each step by putting a **'X'** in each box.
-
-### **1. Design and Build the Application**
-- [ **X** ] **Front-End Design**: Ensure the front-end is easy to navigate and allows users to find information intuitively.
-- [ **X** ] **Full CRUD Implementation**: Create, read, update, and delete functionalities are fully implemented and visible in the user interface.
-- [ **X** ] **Responsive Design**: Ensure the site is fully responsive and follows UX design and accessibility guidelines.
-
-### **2. Robust Codebase**
-- [ **X** ] **Code Quality**: Produce a robust codebase with no logic errors. If errors are presented then document this.
-- [ **X** ] **Data Validation**: Validate all input data effectively.
-- [ **X** ] **User Feedback**: Provide users with clear progress indicators and feedback on actions.
-- [ **X** ] **API Handling**: Handle APIs effectively with clear error handling.
-
-### **3. Thorough Testing**
-- [ **X** ] **Testing Approach**: Demonstrate manual and/or automated testing in the git commits (e.g., JavaScript and Python tests).
-- [ **X** ] **Bug-Free Code**: Ensure there are no runtime errors or unexpected behaviours.
-
-### **4. Efficient Configuration**
-- [ **X** ] **Procfile**: Maintain an organised and effective `Procfile` for deployment.
-- [ **X** ] **Requirements.txt**: Include all necessary dependencies in the `requirements.txt` file.
-- [ **X** ] **Settings Files**: Keep configuration and settings files well-organised, with different versions for different branches.
-- [ **X** ] **Data Store Configuration**: Centralise data store configuration to a single location for easy changes.
-
-### **5. Documentation**
-- [ **X** ] **Data Schema**: Fully describe the data schema in the README file.
-- [ **X** ] **Deployment**: Document the deployment process (e.g., Heroku).
-- [ **X** ] **Version Control**: Use version control software effectively, providing a detailed record of the development process.
-
-### **6. User Experience**
-- [ **X** ] **User Control**: Allow users full control of their interaction with the application.
-- [ **X** ] **Purpose Visibility**: Ensure the site’s purpose is immediately evident to a new user without needing supporting documentation.
-- [ **X** ] **Meeting Expectations**: Address user demands and expectations effectively.
-- [ **X** ] **Large Data Sets**: Provide progress indicators for loading large data sets.
-
-### **7. SEO and Sitemap**
-- [ **X** ] **Robots.txt**: Control access to your sitemap using a `robots.txt` file.
-- [ **X** ] **Canonical Links**: Ensure all sitemap links are canonical.
-- [ **X** ] **Descriptive Metadata**: Use descriptive metadata for SEO, accurately reflecting the site’s purpose.
-
-### **8. Security and Access Control**
-- [ **X** ] **Access Control**: Restrict users to intended views and functionalities only.
-
-### **9. Marketing**
-- [ **X** ] **Marketing Strategy**: Document the primary marketing strategy behind the application.
-- [ **X** ] **Marketing Tools**: Employ relevant marketing strategies and tools.
-
-### **10. Clear Purpose**
-- [ **X** ] **Target Audience**: Define and address the needs of a specific target audience (or multiple related audiences).
-- [ **X** ] **Clarity of Purpose**: Ensure the solution’s purpose is well-defined and immediately evident.
