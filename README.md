@@ -62,22 +62,9 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 
 ## Main Page:
 ![Main page](/screenshots/mainpage.png) 
-
-### Main Page Offer Section:
-#### [Menu](#features)
-![Deals](/screenshots/mainpagedeals.png) 
-  * Displays current promotions
-    
-### Main Page Location Section:
-#### [Menu](#features)
-![MainPageLocation](/screenshots/location2.png)
-  * Using Google maps to display locations:
-
-### Main Page Customers Comments Section:
-#### [Menu](#features)
-  ![MainPComments](/screenshots/mainpagcomments.png)
-   * Customer comments.
-     * only displays the 10 most recent comments.
+* navbar
+* main
+* footer
 
 ## Navbar :
 #### [Menu](#features)
@@ -85,7 +72,8 @@ This project was developed as part of a **Full-Stack Web Development course**, e
    * Depending on the user's status, different sharing options
 
 ## About Page :
-#### [Menu](#features)
+#### Basic page not finish yet:
+#### [Avout](#features)
   ![About](/screenshots/aboutpage.png)
    * Info about restaurant
 
@@ -460,10 +448,6 @@ python manage.py runserver
  - HTTPS enforced (via Heroku settings)
  - Role-based authentication (Admin vs. Customer)
  - CSRF protection enabled
-
-##   Security Measures:
-
- - 
 
 
 ## Bugs Detected:

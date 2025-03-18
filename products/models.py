@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 
+
 class Size(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
@@ -38,7 +39,7 @@ class Flavor(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 class Product(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -60,7 +61,7 @@ class Product(models.Model):
 
     image = models.ImageField(upload_to="product_images/", blank=True, null=True)
     allergen_info = models.TextField(blank=True, help_text="E.g., Contains nuts, gluten-free")
-    available = models.BooleanField(default=True) # If needed deactivate.
+    available = models.BooleanField(default=True)  # If needed deactivate.
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

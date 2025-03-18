@@ -106,7 +106,7 @@ class Order(models.Model):
         return uuid.uuid4().hex.upper()
 
     def update_total(self):
-        """✅ Fixed: Update order total properly from OrderItem prices."""
+        """ Fixed: Update order total properly from OrderItem prices."""
         self.order_total = self.items.aggregate(total=Sum(F("quantity") * F("price_each")))["total"] or 0
 
         # If the order total is below FREE_DELIVERY_THRESHOLD, apply delivery cost
@@ -124,7 +124,7 @@ class Order(models.Model):
         super().save(*args, **kwargs)
 
     def get_stripe_checkout_url(self):
-        """✅ Improved: Generate a Stripe Checkout URL for retrying payment."""
+        """Improved: Generate a Stripe Checkout URL for retrying payment."""
         if self.status == "paid":
             return None  # No need to retry if the order is already paid
 
@@ -162,7 +162,7 @@ class OrderItem(models.Model):
 
     @property
     def line_total(self):
-        """✅ Fixed: Ensure order item total calculation is correct."""
+        """Fixed: Ensure order item total calculation is correct."""
         return self.price_each * self.quantity
 
     def save(self, *args, **kwargs):
@@ -171,7 +171,7 @@ class OrderItem(models.Model):
         self.order.update_total()  # Update order total
 
     def delete(self, *args, **kwargs):
-        """✅ Fixed: Update order total on item removal."""
+        """Fixed: Update order total on item removal."""
         super().delete(*args, **kwargs)
         self.order.update_total()
 
