@@ -33,6 +33,7 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 ### [Bugs Detected](#bugs-detected)
 ### [Credits](#credits)
 * [Other](#other)
+
 ---
 
 # Features:
@@ -58,6 +59,8 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 * **Newsletter signup** for exclusive discounts 
 * **SEO optimization** (meta tags, robots.txt, sitemap.xml) 
 
+---
+
 # Features some screenshots:
 
 ## Main Page:
@@ -65,6 +68,8 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 * navbar
 * hero section
 * footer
+
+---
 
 ## Navbar :
 #### [Menu](#features)
@@ -84,19 +89,33 @@ This project was developed as part of a **Full-Stack Web Development course**, e
   * Cart → href="{% url 'cart_view' %}"
    - Displays the number of items in the cart dynamically.
 
+---
+
 ## About Page :
 #### Basic page not finish yet:
 #### [Avout](#features)
   ![About](/READMEmedia/main.png)
    * Info about restaurant
 
+---
+
 ## Product List :
 #### [Product_list](#features)
+
   ![Product_list](/READMEmedia/product_list.png)
-   * Displays product list. 
+  ####  Product Display:
+   * Grid/List Layout: Displays all available products in a visually appealing format.
+   * Product Cards: Each item is presented with:
+    - Product Image (High-quality image of the cake).
+    - Product Name (e.g., Chocolate Delight Cake).
+    - Price (Displayed clearly with currency)
+    - "View Details" Button → Redirects to the Product Detail Page.
+
+---
 
 ## Product details :
 #### [Product_detail](#features)
+
   ![Product_detail](/READMEmedia/product_detail.png)
   #### Product Image:
    * A high-quality image showcasing the cake.
@@ -114,9 +133,12 @@ This project was developed as part of a **Full-Stack Web Development course**, e
   #### Back to Products Button:
    * A button or breadcrumb link allowing users to return to the product listing page.
 
+---
+
 ## Shopping Cart Page :
 #### [Menu](#features)
-  ![signin](/screenshots/sininform.png)
+
+  ![Menu](/READMEmedia/shopping_cart.png)
   #### Cart Item List:
    * Displays a table/list view of all products added to the cart.
    * Each row contains:
@@ -140,42 +162,82 @@ This project was developed as part of a **Full-Stack Web Development course**, e
   #### Continue Shopping Button:
    * Links back to the Product Listing Page for more browsing.
 
+---
 
-
-  ### Logout form:
-
-  ![Signout](/screenshots/signout.png)
-   * For user to logout from his account.
-
-## Options for logged in users:
+## Checkout Page :
 #### [Menu](#features)
-  
-   ### Make reservation (book table):
 
-  ![Makereservation](/screenshots/makereservation.png)
-   * User can easy make reservation by using reservation form.
+  ![Menu](/READMEmedia/check_out_page.png)
+  #### Shipping Details Section
+   * Full Name (Required)
+   * Email Address (Required)
+   * Phone Number
+   * Street Address 1 & 2
+   * City / Town
+   * Postcode
+   * Country Selection
+  #### Billing Details Section (Optional)
+   * Users can choose to copy shipping details or enter different billing details.
+   * Fields similar to Shipping Address are included.
+  #### Order Summary Section:
+   * Displays cart items, quantities, and total cost.
+   * Includes delivery fee (if applicable).
+   * Shows final grand total.
+  #### Payment Section:
+   * Stripe Payment Integration for secure transactions.
+   * Users are redirected to a Stripe-hosted checkout page.
+   * Payment methods: Credit/Debit Card (Visa, Mastercard, Amex, etc.).
+  #### Place Order Button(Pay with Stripe):
+   * Clicking this button triggers order creation and redirects users to Stripe for payment processing.
+  #### Back to Cart Button:
+   * Allows users to return to their shopping cart for modifications.
 
-  ### Manage reservation see reservation status:
+---
 
-  ![Reservation](/screenshots/reservation.png)
-   * User can easy check reservation status can also cancel reservation.
+## User Sign In & Sign Up Pages:
+#### The User Authentication System allows users to create an account, sign in, and access their profiles securely.
+#### [Menu](#features)
 
-  ### Leave a comment:
+  ![Menu](/READMEmedia/sign_in_form.png)
+  #### Sign In Page (/accounts/login/)
+   * Form Fields:
+    - Email / Username
+    - Password
+    - Remember Me (Checkbox to keep the user signed in)
+   * Buttons & Links:
+    - "Sign In" Button → Authenticates the user.
+    - "Forgot Password?" → Redirects to the password reset page.
+    - "Sign Up Instead" → Links to the Sign-Up page.
+  * Validation & Error Handling:
+   - Displays an error message if login fails.
+   - Prevents empty field submissions.
+  #### Sign Up Page (/accounts/signup/)
+   * Form Fields
+    - Username
+    - Email
+    - Password
+    - Confirm Password
+   * Buttons & Links:
+    - "Sign Up" Button → Registers a new user.
+    - "Already have an account? Sign In" → Redirects to the login page.
+   * Validation & Security Features:
+    - Ensures strong passwords (e.g., minimum length, mix of characters).
+    - Prevents duplicate email registration.
+    - Validates form inputs before submission.
 
-  ![Comments](/screenshots/comments.png)
-   * In this section user can add/delete or edit comments.
-   * Only comments done by loged in user are displayed in this section.
-   * User can only change his comments.
-
+---
 
 ## Footer section:
 #### [Menu](#features)
    
-   ![Footer](/screenshots/footer.png)
-   * Social media links (for now only facbook page is active, more is comming soon)
-   * Subscribe to Neesletter
-   ![Footer](/screenshots/footer.png)
+   ![Footer](/READMEmedia/footer.png)
+   * Social Media Links (for now only facbook page is active, more is comming soon)
+   * Newsletter Subscription:
+    - Input Field: Users can enter their email to subscribe.
+    - Submit Button: Sends email to the newsletter database (newsletter_signup view).
+    - Success/Error Messages: Notifies users if they are already subscribed or if an error occurs.
 
+---
 
 ## User Experience (UX)
 
