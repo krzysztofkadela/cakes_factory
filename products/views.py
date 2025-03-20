@@ -125,7 +125,8 @@ def add_product(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Product added successfully!")
-            return redirect("manage_products")  # Redirect to profile page
+            # Redirect to profile page
+            return redirect("manage_products")
         else:
             messages.error(request, "Please correct the errors below.")
     else:

@@ -11,35 +11,10 @@ The testing.md file provides a comprehensive overview of the testing process con
 <summary>Click to expand.</summary>
 
 
-- [home.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/)
-  ![HTML Validator](READMEmedia/home-validator.png)
+#### home.html
+  ![HTML Validator](READMEmedia/html_main_page_valid.png)
   
-- [signup.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/accounts/signup/)
-  ![HTML Validator](READMEmedia/signup-validator.png)
 
-- [login.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/accounts/login/)
-  ![HTML Validator](READMEmedia/login-validator.png)
-
-- [products.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/products/)
-  ![HTML Validator](READMEmedia/products-validator.png)
-
-- [consultations.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/consultations/)
-  ![HTML Validator](READMEmedia/consultation-validator.png)
-
-- [contact.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/contact/)
-  ![HTML Validator](READMEmedia/contact-validator.png)
-
-- [bag.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/bag/)
-  ![HTML Validator](READMEmedia/bag-validator.png)
-
-- [reset-password.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/accounts/password/reset/)
-  ![HTML Validator](READMEmedia/reset-password-validator.png)
-
-- [product_detail.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/products/1/)
-  ![HTML Validator](READMEmedia/product-details-validator.png)
-
-- [consultation1.html](https://girls-get-tattoos-6ad59281377a.herokuapp.com/consultations/1/)
-  ![HTML Validator](READMEmedia/consultation-details-validator.png)
 
 
 </details>

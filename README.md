@@ -23,12 +23,6 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 * ### [Footer Section](#footer-section-1)
 ### [Technologies](#technologies-1)
 ### [Programs_Used_in_project](#programs-used-in-project)
-### [Testing](#testing-1)
-* [Validation_reports](#validation-reports)
-* [Manual_Testing](#manual-testing)
-* [Making_a_Reservation](#making-a-reservation)
-* [Deleting_a_Reservation](#deleting-a-reservation)
-### [Automated Testing](#automated-testing)
 ### [Deployment](#deployment)
 ### [Bugs Detected](#bugs-detected)
 ### [Credits](#credits)
@@ -198,8 +192,9 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 #### The User Authentication System allows users to create an account, sign in, and access their profiles securely.
 #### [Menu](#features)
 
-  ![Menu](/READMEmedia/sign_in_form.png)
+  
   #### Sign In Page (/accounts/login/)
+  ![Menu](/READMEmedia/sign_in_form.png)
    * Form Fields:
     - Email / Username
     - Password
@@ -212,6 +207,7 @@ This project was developed as part of a **Full-Stack Web Development course**, e
    - Displays an error message if login fails.
    - Prevents empty field submissions.
   #### Sign Up Page (/accounts/signup/)
+  ![Menu](/READMEmedia/sign_up_form.png)
    * Form Fields
     - Username
     - Email
@@ -272,7 +268,6 @@ The project follows a **Classic & Elegant** theme:
  * **Heroku** (Cloud hosting)
  * **GitHub** (Version control)
  * **AWS S3** (Static & media files)
- * **Mailchimp** (Newsletter service)
  ---
 
 ## 🏗 Installation & Setup
@@ -319,38 +314,50 @@ python manage.py runserver
 #### [Menu](#features)
 #### The application is deployed on Heroku with static/media files stored on AWS S3.
 
-### Steps to Deploy:
- 
-   * Push Code to GitHub:
-   ```
-   bash
+###  Deploying Directly from Heroku Dashboard:
+ * Create a Heroku Account & App
+  - Go to Heroku Dashboard
+  - Click New → Create New App
+  - Enter an App Name (must be unique)
+  - Select a Region (United States or Europe)
+  - Click Create App
+ *  Connect to GitHub Repository
+  - In your app's Deploy tab, go to the Deployment Method section
+  - Select GitHub
+  - Click Connect to GitHub and log in (if not connected)
+  - Search for your GitHub repository name
+  - Click Connect
+ * Enable Automatic Deployment (Optional)
+  To deploy every time you push to GitHub:
+  - Under Automatic Deploys, select the branch you want to deploy (e.g., main)
+  - Click Enable Automatic Deploys
+  If you prefer manual deployment, skip this step.
+ * Deploy Your Application
+  - Click Deploy Branch under the Manual Deploy section
+  - Wait for Heroku to build and deploy your project
+  - When the process is complete, click View App to see your live site!
+*  Set Environment Variables
+ - Go to the Settings tab → Click Reveal Config Vars
+ - Add your environment variables (same as in your .env file):
 
-   git add .  
-   git commit -m "Deploying Cake Factory"  
-   git push origin main 
-   ```
-   * Deploy to Heroku:
   ```
-    bash
+    SECRET_KEY = your-secret-key
+    STRIPE_SECRET_KEY = your-stripe-key
+    DATABASE_URL = your-database-url
+  ``` 
+* Migrate the Database
+ - Go to Heroku Dashboard → Click on your app
+ - Go to the More dropdown (top-right corner)
+ - Click Run Console
+ - Type the following commands (one at a time):
 
-    heroku create cake-factory  
-    heroku config:set DISABLE_COLLECTSTATIC=1  
-    git push heroku main 
   ```
-   * Run Migrations on Heroku:
+    python manage.py migrate
+    python manage.py createsuperuser
+    python manage.py collectstatic --noinput
   ```
-    bash
-
-    heroku run python manage.py migrate 
-  ```
-   * Collect Static Files
-  ```
-    bash
-
-    heroku run python manage.py collectstatic --noinput  
-  ```
-  ### Simply deploy on Heroku Dashboard:
-
+* Done! Your App is Live!
+ - Click Open App in your Heroku Dashboard to access your website! 
 ---
 
 ##   Search Engine Optimization (SEO):
@@ -359,6 +366,7 @@ python manage.py runserver
  - Sitemap.xml: Helps Google index the website
  - Canonical Links: Avoids duplicate content issues
  - Custom 404 Page: Prevents user frustration
+  ![Menu](/READMEmedia/404_custom.png)
 
 ##   Security Measures:
  - All secret keys hidden in .env
