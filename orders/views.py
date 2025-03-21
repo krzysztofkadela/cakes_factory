@@ -18,6 +18,7 @@ from products.models import Product, Size
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 def cart_add(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     quantity = int(request.POST.get("quantity", 1))
@@ -85,14 +86,19 @@ def cart_view(request):
                 "product_id": item.product.id,
                 "size_id": item.size.id if item.size else None,
                 "name": item.product.name,
-                "image": item.product.image.url if item.product.image else None,
+                "image": item.product.image.url
+                if item.product.image else None,
                 "price": item.adjusted_price,
                 "quantity": item.quantity,
                 "size": item.size.name if item.size else "N/A",
                 "customization": item.customization or "",
                 "subtotal": subtotal,
-                "update_url": reverse("cart_update", args=[item.product.id, item.size.id if item.size else 0]),
-                "remove_url": reverse("cart_remove", args=[item.product.id, item.size.id if item.size else 0]),
+                "update_url": reverse(
+                    "cart_update", args=[item.product.id,
+                                         item.size.id if item.size else 0]),
+                "remove_url": reverse(
+                    "cart_remove", args=[item.product.id,
+                                         item.size.id if item.size else 0]),
             })
     else:
         session_cart = request.session.get("cart", {})
@@ -118,16 +124,24 @@ def cart_view(request):
                 "size": size.name if size else "N/A",
                 "customization": item.get("customization", ""),
                 "subtotal": subtotal,
-                "update_url": reverse("cart_update", args=[product.id, size.id if size else 0]),
-                "remove_url": reverse("cart_remove", args=[product.id, size.id if size else 0]),
+                "update_url": reverse(
+                    "cart_update", args=[product.id, size.id if size else 0]),
+                "remove_url": reverse(
+                    "cart_remove", args=[product.id, size.id if size else 0]),
             })
 
-    return render(request, "orders/cart.html", {"cart": cart_items, "total_price": total_price})
+    return render(request, "orders/cart.html", {"cart": cart_items,
+                                                "total_price": total_price})
 
 
 def cart_remove(request, product_id, size_id=0):
     if request.user.is_authenticated:
-        cart_item = CartItem.objects.filter(user=request.user, product_id=product_id, size_id=size_id).first()
+        cart_item = CartItem.objects.filter(
+            user=request.user,
+            product_id=product_id,
+            size_id=size_id
+        ).first()
+
         if cart_item:
             cart_item.delete()
             messages.success(request, "Item removed from cart.")
@@ -135,23 +149,27 @@ def cart_remove(request, product_id, size_id=0):
             messages.error(request, "Item not found in cart.")
     else:
         cart = request.session.get("cart", {})
-        cart_item_key = f"{product_id}_{size_id}" if int(size_id) > 0 else str(product_id)
+        cart_item_key = (
+            f"{product_id}_{size_id}" if int(size_id) > 0 else str(product_id)
+        )
+
         if cart_item_key in cart:
             del cart[cart_item_key]
             messages.success(request, "Item removed from cart.")
         else:
             messages.error(request, "Item not found in cart.")
+
         request.session["cart"] = cart
         request.session.modified = True
 
     return redirect("cart_view")
 
 
-
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "orders/order_history.html", {"orders": orders})
+
 
 @login_required
 def custom_order(request, product_id):
@@ -177,18 +195,26 @@ def custom_order(request, product_id):
             return redirect("cart_view")
     else:
         form = CustomOrderForm()
-    return render(request, "orders/custom_order.html", {"form": form, "product": product})
+    return render(request, "orders/custom_order.html",
+                  {"form": form, "product": product})
+
 
 def cart_update(request, product_id, size_id=0):
     new_quantity = request.POST.get("quantity")
+
     if not new_quantity or not new_quantity.isdigit():
         messages.error(request, "Invalid quantity.")
         return HttpResponseRedirect(reverse("cart_view"))
+
     new_quantity = int(new_quantity)
+
     if request.user.is_authenticated:
         cart_item = CartItem.objects.filter(
-            user=request.user, product_id=product_id, size_id=size_id if size_id else None
+            user=request.user,
+            product_id=product_id,
+            size_id=size_id if size_id else None
         ).first()
+
         if cart_item:
             if new_quantity > 0:
                 cart_item.quantity = new_quantity
@@ -201,7 +227,11 @@ def cart_update(request, product_id, size_id=0):
             messages.error(request, "Item not found in cart.")
     else:
         cart = request.session.get("cart", {})
-        cart_item_key = f"{product_id}_{size_id}" if int(size_id) > 0 else str(product_id)
+        cart_item_key = (
+            f"{product_id}_{size_id}" if int(size_id) > 0
+            else str(product_id)
+        )
+
         if cart_item_key in cart:
             if new_quantity > 0:
                 cart[cart_item_key]["quantity"] = new_quantity
@@ -211,9 +241,12 @@ def cart_update(request, product_id, size_id=0):
                 messages.success(request, "Item removed from cart.")
         else:
             messages.error(request, "Item not found in cart.")
+
         request.session["cart"] = cart
         request.session.modified = True
+
     return HttpResponseRedirect(reverse("cart_view"))
+
 
 @receiver(user_logged_in)
 def merge_cart_on_login(sender, request, user, **kwargs):
@@ -227,22 +260,25 @@ def merge_cart_on_login(sender, request, user, **kwargs):
         size = get_object_or_404(Size, id=size_id) if size_id else None
         cart_item, created = CartItem.objects.get_or_create(
             user=user, product=product, size=size,
-            defaults={"quantity": item["quantity"], "customization": item.get("customization", "")}
+            defaults={"quantity": item["quantity"],
+                      "customization": item.get("customization", "")}
         )
         if not created:
             cart_item.quantity += item["quantity"]
         cart_item.save()
     request.session["cart"] = {}
 
+
 @receiver(user_logged_out)
 def clear_cart_on_logout(sender, request, user, **kwargs):
     request.session["cart"] = {}
     request.session.modified = True
 
+
 def checkout_page(request):
     """
-    Displays the checkout.html page with shipping/billing fields 
-    and a list of cart items. No order creation here -- that's 
+    Displays the checkout.html page with shipping/billing fields
+    and a list of cart items. No order creation here -- that's
     handled by create_checkout_session when the user submits the form.
     """
 
@@ -299,7 +335,7 @@ def checkout_page(request):
         delivery_charge = Decimal(settings.STANDARD_DELIVERY_CHARGE)
     grand_total = total_price + delivery_charge
 
-    # We do NOT create an Order here. 
+    # We do NOT create an Order here.
     # We only render checkout.html with cart_items.
     return render(request, "orders/checkout.html", {
         "cart_items": cart_items,
@@ -307,75 +343,70 @@ def checkout_page(request):
         "delivery_charge": delivery_charge,
         "grand_total": grand_total,
     })
+
+
 # create checkout session
 @require_POST
 def create_checkout_session(request):
     """
-    Single-step approach:
-    1) Receives shipping/billing from the form in `checkout.html`.
+    Single-step:
+    1) Receives form from `checkout.html`.
     2) Validates `OrderForm`.
-    3) Creates `Order`, updates user profile if logged in.
-    4) Creates `OrderItem`s from the cart, then redirects to Stripe Checkout.
+    3) Creates `Order`, updates profile.
+    4) Creates `OrderItem`s, redirects to Stripe.
     """
 
     form = OrderForm(request.POST)
     if not form.is_valid():
-        return JsonResponse({
-            "error": "Invalid shipping/billing details. Please check your input.",
-            "form_errors": form.errors
-        }, status=400)
+        return JsonResponse(
+            {"error": "Invalid shipping/billing details.",
+             "form_errors": form.errors},
+            status=400)
 
-    # 1) Create the new_order from form data
     new_order = form.save(commit=False)
     if request.user.is_authenticated:
         new_order.user = request.user
     new_order.save()
-    print(f"✅ Order Created: {new_order.order_number}")
 
-    # 2) If user is logged in, update user shipping/billing
     if request.user.is_authenticated:
         user_profile = request.user
-        # Shipping
-        user_profile.shipping_full_name = form.cleaned_data.get("full_name")
-        user_profile.shipping_phone = form.cleaned_data.get("phone_number")
-        user_profile.shipping_street_address1 = form.cleaned_data.get("street_address1")
-        user_profile.shipping_street_address2 = form.cleaned_data.get("street_address2")
-        user_profile.shipping_city = form.cleaned_data.get("town_or_city")
-        user_profile.shipping_county = form.cleaned_data.get("county")
-        user_profile.shipping_postcode = form.cleaned_data.get("postcode")
-        user_profile.shipping_country = form.cleaned_data.get("country")
-
-        # Billing
-        user_profile.billing_full_name = form.cleaned_data.get("billing_full_name")
-        user_profile.billing_phone = form.cleaned_data.get("billing_phone_number")
-        user_profile.billing_street_address1 = form.cleaned_data.get("billing_street_address1")
-        user_profile.billing_street_address2 = form.cleaned_data.get("billing_street_address2")
-        user_profile.billing_city = form.cleaned_data.get("billing_town_or_city")
-        user_profile.billing_county = form.cleaned_data.get("billing_county")
-        user_profile.billing_postcode = form.cleaned_data.get("billing_postcode")
-        user_profile.billing_country = form.cleaned_data.get("billing_country")
-
+        fields = [
+            ("shipping_full_name", "full_name"),
+            ("shipping_phone", "phone_number"),
+            ("shipping_street_address1", "street_address1"),
+            ("shipping_street_address2", "street_address2"),
+            ("shipping_city", "town_or_city"),
+            ("shipping_county", "county"),
+            ("shipping_postcode", "postcode"),
+            ("shipping_country", "country"),
+            ("billing_full_name", "billing_full_name"),
+            ("billing_phone", "billing_phone_number"),
+            ("billing_street_address1", "billing_street_address1"),
+            ("billing_street_address2", "billing_street_address2"),
+            ("billing_city", "billing_town_or_city"),
+            ("billing_county", "billing_county"),
+            ("billing_postcode", "billing_postcode"),
+            ("billing_country", "billing_country"),
+        ]
+        for user_attr, form_field in fields:
+            setattr(user_profile, user_attr, form.cleaned_data.get(form_field))
         user_profile.save()
-        print("✅ User shipping/billing profile updated.")
 
-    # 3) Gather cart items
+    cart_items = []
     if request.user.is_authenticated:
         cart_items = list(CartItem.objects.filter(user=request.user))
     else:
         session_cart = request.session.get("cart", {})
         if not session_cart:
-            return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
+            return JsonResponse(
+                {"error": "Your cart is empty. Cannot proceed."},
+                status=400)
 
-        cart_items = []
         for key, item in session_cart.items():
-            if "_" in key:
-                product_id, size_id = key.split("_")
-            else:
-                product_id, size_id = key, None
-            try:
-                product = Product.objects.get(id=product_id)
-                size = Size.objects.get(id=size_id) if size_id else None
-            except (Product.DoesNotExist, Size.DoesNotExist):
+            product_id, size_id = key.split("_") if "_" in key else (key, None)
+            product = Product.objects.filter(id=product_id).first()
+            size = Size.objects.filter(id=size_id).first() if size_id else None
+            if not product:
                 continue
             cart_items.append({
                 "product": product,
@@ -384,49 +415,36 @@ def create_checkout_session(request):
                 "price": Decimal(item.get("price", 0))
             })
 
-    # 4) If no cart items, cannot proceed
     if not cart_items:
-        return JsonResponse({"error": "Your cart is empty. Cannot proceed to payment."}, status=400)
+        return JsonResponse(
+            {"error": "Your cart is empty. Cannot proceed."},
+            status=400)
 
-    # 5) Create each OrderItem & build Stripe line_items
     line_items = []
     for item in cart_items:
-        if isinstance(item, CartItem):
-            product = item.product
-            quantity = item.quantity
-            price = item.adjusted_price
-            size = item.size
-        else:
-            product = item["product"]
-            quantity = item["quantity"]
-            price = item["price"]
-            size = item.get("size")
+        is_cart_item = isinstance(item, CartItem)
+        product = item.product if is_cart_item else item["product"]
+        quantity = item.quantity if is_cart_item else item["quantity"]
+        price = item.adjusted_price if is_cart_item else item["price"]
+        size = item.size if is_cart_item else item.get("size")
 
-        # Save to DB
         OrderItem.objects.create(
-            order=new_order,
-            product=product,
-            size=size,
-            quantity=quantity,
-            price_each=price
-        )
+            order=new_order, product=product, size=size,
+            quantity=quantity, price_each=price)
 
-        # Stripe line item
         line_items.append({
             'price_data': {
-                'currency': 'eur',  # or your currency
+                'currency': 'eur',
                 'product_data': {'name': product.name},
                 'unit_amount': int(price * 100),
             },
             'quantity': quantity,
         })
 
-    # 6) Create Stripe Checkout Session
     metadata = {
         "order_number": str(new_order.order_number),
         "customer_email": new_order.email or "unknown@example.com"
     }
-    print(f"✅ Stripe Metadata: {metadata}")
 
     try:
         checkout_session = stripe.checkout.Session.create(
@@ -437,29 +455,30 @@ def create_checkout_session(request):
             cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
             metadata=metadata,
             payment_intent_data={"metadata": metadata},
-            # shipping_address_collection REMOVED => only card details
         )
-        print(f"✅ Stripe Checkout Session Created: {checkout_session.id}")
         return redirect(checkout_session.url)
     except stripe.error.StripeError as e:
-        print(f"❌ Stripe Error: {e}")
-        return JsonResponse({
-            "error": "There was a problem creating the Stripe Checkout Session.",
-            "details": str(e)
-        }, status=500)
+        return JsonResponse(
+            {"error": "Problem creating Stripe session.", "details": str(e)},
+            status=500
+        )
+
 
 def payment_success(request):
     return render(request, "orders/payment_success.html")
 
+
 def payment_cancel(request):
     return render(request, "orders/payment_cancel.html")
+
 
 @login_required
 def retry_payment(request, order_number):
     """
     Allows user to retry a payment for a pending or failed order.
     """
-    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+    order = get_object_or_404(
+        Order, order_number=order_number, user=request.user)
 
     if order.status == "paid":
         messages.info(request, "This order is already paid.")
@@ -477,18 +496,20 @@ def retry_payment(request, order_number):
                     "product_data": {
                         "name": f"Order {order.order_number}",
                     },
-                    "unit_amount": int(order.grand_total * 100),  # Convert to cents
+                    "unit_amount": int(order.grand_total * 100),
                 },
                 "quantity": 1,
             }],
             metadata={"order_number": order.order_number},
             success_url=f"{settings.SITE_URL}{reverse('payment_success')}",
-            cancel_url=f"{settings.SITE_URL}{reverse('order_detail', args=[order.order_number])}",
+            cancel_url=f"{settings.SITE_URL}{reverse(
+                'order_detail', args=[order.order_number])}",
         )
         return redirect(session.url)
     except stripe.error.StripeError as e:
         messages.error(request, f"Stripe error: {str(e)}")
         return redirect("order_detail", order_number=order.order_number)
+
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -501,7 +522,8 @@ def stripe_webhook(request):
     handler = StripeWH_Handler(request)
 
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret)
     except ValueError:
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError:
@@ -509,21 +531,27 @@ def stripe_webhook(request):
 
     # Map event types to handler methods
     event_map = {
-        "checkout.session.completed": handler.handle_checkout_session_completed,
-        "payment_intent.succeeded": handler.handle_payment_intent_succeeded,
-        "payment_intent.payment_failed": handler.handle_payment_intent_payment_failed,
+        "checkout.session.completed":
+        handler.handle_checkout_session_completed,
+        "payment_intent.succeeded":
+            handler.handle_payment_intent_succeeded,
+        "payment_intent.payment_failed":
+            handler.handle_payment_intent_payment_failed,
     }
-    event_handler = event_map.get(event["type"], handler.handle_event)
+    event_handler = event_map.get(event["type"],
+                                  handler.handle_event)
     response = event_handler(event)
     return response
-# order_detail view.
 
+
+# order_detail view.
 @login_required
 def order_detail(request, order_number):
     """
     Display details of a specific order belonging to the logged-in user.
     """
-    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+    order = get_object_or_404(
+        Order, order_number=order_number, user=request.user)
     # For security, ensure the order belongs to the current user
     return render(request, "orders/order_detail.html", {"order": order})
 
@@ -535,16 +563,19 @@ def manage_orders(request):
     orders = Order.objects.all().order_by("-created_at")
     return render(request, "orders/manage_orders.html", {"orders": orders})
 
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def update_order_status(request, order_number, status):
     """Allows Admins to Update Order Status."""
     order = get_object_or_404(Order, order_number=order_number)
-    if status in ["pending", "paid", "shipped", "delivered", "cancelled", "failed"]:
+    if status in ["pending",
+                  "paid", "shipped", "delivered", "cancelled", "failed"]:
         order.status = status
         order.save()
-        messages.success(request, f"Order {order.order_number} marked as {status}.")
+        messages.success(
+            request, f"Order {order.order_number} marked as {status}.")
     else:
         messages.error(request, "Invalid order status.")
-    
+
     return redirect("manage_orders")

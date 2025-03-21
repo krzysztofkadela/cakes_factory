@@ -8,14 +8,17 @@ from products.models import Product, Size
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 class CartItem(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         null=True, blank=True, related_name="cart_items"
     )
-    session_key = models.CharField(max_length=40, null=True, blank=True)  # For guest users
+    session_key = models.CharField(
+        max_length=40, null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
+    size = models.ForeignKey(
+        Size, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     customization = models.TextField(blank=True, null=True)
     added_at = models.DateTimeField(auto_now_add=True)
@@ -27,12 +30,13 @@ class CartItem(models.Model):
     def adjusted_price(self):
         """Calculate price based on size selection."""
         SIZE_PRICE_ADJUSTMENT = {
-            "Small": 0,  
-            "Large": 20,  
-            "X-large": 40  
+            "Small": 0,
+            "Large": 20,
+            "X-large": 40
         }
         base_price = self.product.price or 0
-        size_adjustment = SIZE_PRICE_ADJUSTMENT.get(self.size.name if self.size else "Small", 0)
+        size_adjustment = SIZE_PRICE_ADJUSTMENT.get(
+            self.size.name if self.size else "Small", 0)
         return base_price + size_adjustment
 
     @property
@@ -59,7 +63,8 @@ class Order(models.Model):
         related_name="orders"
     )
 
-    order_number = models.CharField(max_length=32, null=False, editable=False, unique=True)
+    order_number = models.CharField(
+        max_length=32, null=False, editable=False, unique=True)
 
     # Shipping Fields
     full_name = models.CharField(max_length=50)
@@ -73,14 +78,22 @@ class Order(models.Model):
     county = models.CharField(max_length=80, null=True, blank=True)
 
     # Billing Fields
-    billing_full_name = models.CharField(max_length=50, blank=True, null=True)
-    billing_phone_number = models.CharField(max_length=20, blank=True, null=True)
-    billing_country = models.CharField(max_length=40, blank=True, null=True)
-    billing_postcode = models.CharField(max_length=20, blank=True, null=True)
-    billing_town_or_city = models.CharField(max_length=40, blank=True, null=True)
-    billing_street_address1 = models.CharField(max_length=80, blank=True, null=True)
-    billing_street_address2 = models.CharField(max_length=80, blank=True, null=True)
-    billing_county = models.CharField(max_length=80, blank=True, null=True)
+    billing_full_name = models.CharField(
+        max_length=50, blank=True, null=True)
+    billing_phone_number = models.CharField(
+        max_length=20, blank=True, null=True)
+    billing_country = models.CharField(
+        max_length=40, blank=True, null=True)
+    billing_postcode = models.CharField(
+        max_length=20, blank=True, null=True)
+    billing_town_or_city = models.CharField(
+        max_length=40, blank=True, null=True)
+    billing_street_address1 = models.CharField(
+        max_length=80, blank=True, null=True)
+    billing_street_address2 = models.CharField(
+        max_length=80, blank=True, null=True)
+    billing_county = models.CharField(
+        max_length=80, blank=True, null=True)
 
     # Delivery/Pickup Date & Time
     delivery_date = models.DateField(null=True, blank=True)
@@ -97,9 +110,12 @@ class Order(models.Model):
     )
 
     # Pricing Fields
-    delivery_cost = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    order_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    delivery_cost = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0)
+    order_total = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    grand_total = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
 
     def _generate_order_number(self):
         """Generate a unique order number using UUID."""
@@ -107,9 +123,11 @@ class Order(models.Model):
 
     def update_total(self):
         """ Fixed: Update order total properly from OrderItem prices."""
-        self.order_total = self.items.aggregate(total=Sum(F("quantity") * F("price_each")))["total"] or 0
+        self.order_total = self.items.aggregate(
+            total=Sum(F("quantity") * F("price_each")))["total"] or 0
 
-        # If the order total is below FREE_DELIVERY_THRESHOLD, apply delivery cost
+        # If the order total is below FREE_DELIVERY_THRESHOLD
+        #  apply delivery cost
         self.delivery_cost = 0
         if self.order_total < settings.FREE_DELIVERY_THRESHOLD:
             self.delivery_cost = settings.STANDARD_DELIVERY_CHARGE
@@ -136,13 +154,15 @@ class Order(models.Model):
                     "price_data": {
                         "currency": "usd",
                         "product_data": {"name": f"Order {self.order_number}"},
-                        "unit_amount": int(self.grand_total * 100),  # Convert to cents
+                        # Convert to cents
+                        "unit_amount": int(self.grand_total * 100),
                     },
                     "quantity": 1,
                 }],
                 metadata={"order_number": self.order_number},
                 success_url=f"{settings.SITE_URL}{reverse('payment_success')}",
-                cancel_url=f"{settings.SITE_URL}{reverse('order_detail', args=[self.order_number])}",
+                cancel_url=f"{settings.SITE_URL}{reverse(
+                    'order_detail', args=[self.order_number])}",
             )
             return session.url
         except Exception as e:
@@ -154,9 +174,11 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
+    size = models.ForeignKey(
+        Size, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     price_each = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -176,4 +198,5 @@ class OrderItem(models.Model):
         self.order.update_total()
 
     def __str__(self):
-        return f"{self.product.name} ({self.quantity}) - Order {self.order.order_number}"
+        return (f"{self.product.name} ({self.quantity}) - "
+                f"Order {self.order.order_number}")

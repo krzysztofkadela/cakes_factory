@@ -12,19 +12,22 @@ class StripeWH_Handler:
     def handle_event(self, event):
         """Default handler for unhandled events."""
         print(f"⚠️ Unhandled webhook received: {event['type']}")
-        return HttpResponse(content=f"Unhandled event type: {event['type']}", status=200)
+        return HttpResponse(
+            content=f"Unhandled event type: {event['type']}", status=200)
 
     def handle_checkout_session_completed(self, event):
         """
         Handle the checkout.session.completed event from Stripe.
-        Marks the order as paid, clears the cart, and updates user shipping info (if any).
+        Marks the order as paid, clears the cart,
+        and updates user shipping info (if any).
         """
         session = event["data"]["object"]
         order_number = session.get("metadata", {}).get("order_number")
 
         if not order_number:
             print("❌ No order_number found in session metadata!")
-            return HttpResponse("No order_number in webhook metadata.", status=400)
+            return HttpResponse(
+                "No order_number in webhook metadata.", status=400)
 
         # Retrieve the matching order
         try:
@@ -36,7 +39,8 @@ class StripeWH_Handler:
         # Mark order as paid
         order.status = "paid"
         order.save()
-        print(f"✅ Order {order_number} marked as PAID via checkout.session.completed.")
+        print(
+            f"✅ Order {order_number} marked as PAID")
 
         # Clear cart (DB-based if user is authenticated; session cart if guest)
         if order.user:
@@ -46,8 +50,12 @@ class StripeWH_Handler:
                 del self.request.session["cart"]
                 self.request.session.modified = True
 
-        # ✅ Update user shipping address if user is authenticated AND shipping info is present
-        shipping_info = session.get("shipping")  # A dict with keys: 'name', 'address'
+        """
+          Update user shipping address if user is 
+          authenticated AND shipping info is present.
+
+        """
+        shipping_info = session.get("shipping") 
         if order.user and shipping_info:
             address = shipping_info.get("address", {})
             order.user.shipping_full_name = shipping_info.get("name", "")
