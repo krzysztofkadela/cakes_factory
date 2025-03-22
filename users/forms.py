@@ -28,7 +28,8 @@ class CustomUserForm(forms.ModelForm):
             # etc...
         }
         widgets = {
-            'shipping_full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'shipping_full_name':
+                forms.TextInput(attrs={'class': 'form-control'}),
             'shipping_phone': forms.TextInput(attrs={'class': 'form-control'}),
             # Add similar widget settings for all fields...
         }
