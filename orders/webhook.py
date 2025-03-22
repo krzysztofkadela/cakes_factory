@@ -5,16 +5,18 @@ from django.views.decorators.http import require_POST
 import stripe
 from .webhook_handler import StripeWH_Handler
 
+
 @require_POST
 @csrf_exempt
 def webhook(request):
     """
     Listen for webhooks from Stripe and process them securely.
-    Includes shipping if 'shipping_address_collection' was added to Checkout Session.
+    Includes shipping if 'shipping_address_collection'
+    was added to Checkout Session.
     """
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-    webhook_secret = settings.STRIPE_WH_SECRET 
+    webhook_secret = settings.STRIPE_WH_SECRET
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -31,9 +33,12 @@ def webhook(request):
 
     handler = StripeWH_Handler(request)
     event_map = {
-        "checkout.session.completed": handler.handle_checkout_session_completed,
-        "payment_intent.succeeded": handler.handle_payment_intent_succeeded,
-        "payment_intent.payment_failed": handler.handle_payment_intent_payment_failed,
+        "checkout.session.completed":
+            handler.handle_checkout_session_completed,
+        "payment_intent.succeeded":
+            handler.handle_payment_intent_succeeded,
+        "payment_intent.payment_failed":
+            handler.handle_payment_intent_payment_failed,
     }
     event_handler = event_map.get(event.get("type"), handler.handle_event)
 

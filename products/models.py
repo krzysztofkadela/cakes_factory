@@ -59,9 +59,11 @@ class Product(models.Model):
         Size, blank=True, related_name="products"
     )
 
-    image = models.ImageField(upload_to="product_images/", blank=True, null=True)
-    allergen_info = models.TextField(blank=True, help_text="E.g., Contains nuts, gluten-free")
-    available = models.BooleanField(default=True)  # If needed deactivate.
+    image = models.ImageField(
+        upload_to="product_images/", blank=True, null=True)
+    allergen_info = models.TextField(
+        blank=True, help_text="E.g., Contains nuts, gluten-free")
+    available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -84,9 +86,10 @@ class Product(models.Model):
 
 class Review(models.Model):
     """Customer review and rating for a product."""
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="reviews")
     user = models.CharField(max_length=100)
-    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # 1-5 stars
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from .models import Order, CartItem
 
+
 class StripeWH_Handler:
     """Handle Stripe webhooks"""
 
@@ -13,7 +14,8 @@ class StripeWH_Handler:
         """Default handler for unhandled events."""
         print(f"⚠️ Unhandled webhook received: {event['type']}")
         return HttpResponse(
-            content=f"Unhandled event type: {event['type']}", status=200)
+            content=f"Unhandled event type: {event['type']}",
+                    status=200)
 
     def handle_checkout_session_completed(self, event):
         """
@@ -51,11 +53,11 @@ class StripeWH_Handler:
                 self.request.session.modified = True
 
         """
-          Update user shipping address if user is 
+          Update user shipping address if user is
           authenticated AND shipping info is present.
 
         """
-        shipping_info = session.get("shipping") 
+        shipping_info = session.get("shipping")
         if order.user and shipping_info:
             address = shipping_info.get("address", {})
             order.user.shipping_full_name = shipping_info.get("name", "")
@@ -65,9 +67,10 @@ class StripeWH_Handler:
             order.user.shipping_postcode = address.get("postal_code", "")
             order.user.shipping_country = address.get("country", "")
             order.user.save()
-            print("✅ User shipping address updated from Stripe Checkout Session.")
+            print("User shipping address updated from Stripe Checkout.")
 
-        return HttpResponse(f"Order {order_number} marked as paid.", status=200)
+        return HttpResponse(f"Order {order_number} marked as paid.",
+                            status=200)
 
     def handle_payment_intent_succeeded(self, event):
         """
@@ -81,19 +84,20 @@ class StripeWH_Handler:
 
         order_number = intent.get("metadata", {}).get("order_number")
         if not order_number:
-            print("❌ No order_number found in metadata for payment_intent.succeeded.")
-            return HttpResponse("No order_number in webhook metadata.", status=400)
+            print("No order_number found in metadata.")
+            return HttpResponse("No order_number in webhook metadata.",
+                                status=400)
 
         try:
             order = Order.objects.get(order_number=order_number)
         except Order.DoesNotExist:
-            print(f"❌ Order {order_number} not found for payment_intent.succeeded.")
+            print(f"Order {order_number} not found.")
             return HttpResponse("Order not found.", status=400)
 
         # Mark order as paid
         order.status = "paid"
         order.save()
-        print(f"✅ Order {order_number} marked as PAID (payment_intent_succeeded).")
+        print(f" Order {order_number} marked as PAID.")
 
         # Clear cart
         if order.user:
@@ -103,7 +107,8 @@ class StripeWH_Handler:
                 del self.request.session["cart"]
                 self.request.session.modified = True
 
-        return HttpResponse(f"Order {order_number} marked as paid.", status=200)
+        return HttpResponse(f"Order {order_number} marked as paid.",
+                            status=200)
 
     def handle_payment_intent_payment_failed(self, event):
         """Handle failed payment_intent events."""
@@ -113,18 +118,19 @@ class StripeWH_Handler:
 
         order_number = intent.get("metadata", {}).get("order_number")
         if not order_number:
-            print("❌ No order_number found in metadata for failed payment.")
-            return HttpResponse("No order_number in webhook metadata for failed payment.", status=400)
+            print("No order_number found in metadata for failed payment.")
+            return HttpResponse("No order_number in webhook.", status=400)
 
         try:
             order = Order.objects.get(order_number=order_number)
         except Order.DoesNotExist:
-            print(f"❌ Order {order_number} not found for failed payment.")
+            print(f"Order {order_number} not found for failed payment.")
             return HttpResponse("Order not found.", status=400)
 
         # Mark order status as pending (or whatever you prefer)
         order.status = "pending"
         order.save()
-        print(f"⚠️ Order {order_number} remains pending due to failed payment.")
+        print(f"Order {order_number} remains pending due to failed payment.")
 
-        return HttpResponse(f"Payment failed for Order {order_number}.", status=200)
+        return HttpResponse(f"Payment failed for Order {order_number}.",
+                            status=200)
