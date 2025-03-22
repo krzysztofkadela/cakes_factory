@@ -78,12 +78,14 @@
 | Function                      | User Action                                                                 | Outcome                                                                                               | Result |
 |------------------------------|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|--------|
 | **Admin Login**            | Visit /admin/, enter correct username/password, and submit.| Admin dashboard loads successfully, displaying available models and site management tools.            | Pass   |
-| **View Product List**      | In the admin dashboard, click on Products under app models. | Product list page loads displaying all products, their prices, categories, and statuses. | Pss |
+| **View Product List**      | In the admin dashboard, click on Manage Products under app models. | Product list page loads displaying all products, their prices, categories, and statuses. | Pss |
 | **Add New Product**        | On the product list page, click "Add Product", fill details, submit. | New product is successfully created, visible in the product list. | Fail/Product Model Need img url field |
 | **Edit Existing Product** | From the product list, select an existing product, edit details, submit. | Product details update successfully and changes reflect immediately. | Pass |
 | **Delete Product** | From the product list, select a product, click "Delete", confirm. | Product is successfully deleted and no longer visible in the product list. | Pass |
-| **View User List** | Click Users under authentication and authorization section. | Displays a list of all registered users with usernames, emails, and active statuses. | Pass |
-
-
+| **View User List** | Click Manage Users under authentication and authorization section. | Displays a list of all registered users with usernames, emails, and active statuses. | Pass |
+| **View Order List** | Select Manage Orders in admin dashboard. | Order page loads with a list of all placed orders, including statuses and totals. | Pass |
+| **Update Order Status** | 	Select an order, change its status (e.g., Shipped, Delivered). | Order status updates successfully and is immediately reflected. | Pass |
+| **Manage Newsletter Subscribers** | Manage Subscribers from admin dashboard. | Subscriber list loads, displaying all email addresses subscribed. | Pass |
+| **Delete Newsletter Subscriber** | Select a subscriber, click "Delete", confirm deletion. | Subscriber is successfully removed from the newsletter list. | Pass |
 
 ---

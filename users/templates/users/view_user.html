@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>User Details: {{ user.username }}</h2>
+    <ul>
+        <li><strong>Email:</strong> {{ user.email }}</li>
+        <li><strong>First Name:</strong> {{ user.first_name }}</li>
+        <li><strong>Last Name:</strong> {{ user.last_name }}</li>
+        <li><strong>Active:</strong> {{ user.is_active }}</li>
+        <li><strong>Staff:</strong> {{ user.is_staff }}</li>
+        <li><strong>Superuser:</strong> {{ user.is_superuser }}</li>
+    </ul>
+    <a href="{% url 'edit_user' user.id %}" class="btn btn-primary">Edit User</a>
+    <a href="{% url 'manage_users' %}" class="btn btn-secondary">Back to Users</a>
+</div>
+{% endblock %}

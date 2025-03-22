@@ -11,5 +11,8 @@ urlpatterns = [
     path("manage/subscriptions/toggle/<int:subscriber_id>/", views.toggle_subscription, name="toggle_subscription"),
     path("manage/subscriptions/delete/<int:subscriber_id>/", views.delete_subscription, name="delete_subscription"),
     path("manage/users/", views.manage_users, name="manage_users"),
+    path('manage/users/<int:user_id>/', views.view_user, name='view_user'),
+    path('manage/users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
+    path('manage/users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
     path("manage/orders/", views.manage_orders, name="manage_orders"),
 ]
