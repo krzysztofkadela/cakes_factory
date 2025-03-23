@@ -98,12 +98,12 @@
 |-------------------------|-------------|----------------|----------------|------|---------------------------------|
 | **Home Page**           | 95          | 94             | 96             | 100  | Loads fast, fully optimized     |
 | **Product List Page**   | 54          | 90             | 96             | 92  | Great listing speed & layout    |
-| **Product Detail Page** | 91          | 94             | 97             | 100  | Detail and image loads well     |
-| **Cart Page**           | 88          | 91             | 100            | 100  | JS-heavy interactions handled   |
-| **Checkout Page**       | 87          | 93             | 100            | 100  | Form validation & SEO good      |
-| **Login Page**          | 96          | 100            | 100            | 100  | Clean and simple auth form      |
-| **Register Page**       | 95          | 100            | 100            | 100  | Strong field labeling & ARIA    |
-| **Admin Management Page**| 89         | 92             | 100            | 100  | Data loads fine, minor delays   |
+| **Product Detail Page** | 100         | 87             | 99             | 100  | Detail and image loads well     |
+| **Cart Page**           | 88          | 91             | 98             | 100  | JS-heavy interactions handled   |
+| **Checkout Page**       | 87          | 93             | 97             | 100  | Form validation & SEO good      |
+| **Login Page**          | 96          | 100            | 97             | 100  | Clean and simple auth form      |
+| **Register Page**       | 95          | 100            | 96             | 100  | Strong field labeling & ARIA    |
+| **Admin Management Page**| 89         | 92             | 95             | 100  | Data loads fine, minor delays   |
 
 ---
 
@@ -115,4 +115,8 @@
 
 ### Lighthouse Product List Page:
 
-![Main](/READMEmedia/lighthouse_product_list.png)
+![Product](/READMEmedia/lighthouse_product_list.png)
+
+### Lighthouse Product Details Page:
+
+![Product](/READMEmedia/lighthouse_product_detail.png)

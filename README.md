@@ -19,7 +19,7 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 * ### [Navbar](#navbar-1)
 * ### [About](#about-page)
 * ### [Menu Page](#menu-page-1)
-* ### [Account for Users](#account-for-users-1)
+* ### [Account for Users](#user-sign-in--sign-up-pages)
 * ### [Footer Section](#footer-section-1)
 ### [Technologies](#technologies-1)
 ### [Programs_Used_in_project](#programs-used-in-project)
@@ -243,7 +243,31 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 -  Small businesses needing **bulk cake orders**
 
 ###  **Wireframes & UX Planning**  
-Wireframes & UX documentation are included in the **docs/** folder. 
+ The design and layout of this site were carefully planned to ensure a smooth, intuitive shopping experience for all users — whether they’re browsing cakes, customizing an order, or checking out quickly.
+
+ #### UX Goals
+ * Simple Navigation: Quick access to products, cart, and account from all pages.
+ * Mobile-Friendly Layout: Responsive design ensures full functionality on all screen sizes.
+ * Clear Product Presentation: High-quality images, sizes, and customization options clearly shown.
+ * Streamlined Checkout: Easy-to-use checkout form with optional saved addresses for logged-in users.
+ * Admin Control: Clean, functional admin area for managing orders and users.
+
+#### Wireframes :
+
+All wireframes were initially created using Balsamiq before development began.
+
+* Home Page:
+
+  ![HomePageW](/READMEmedia/wireframe_main_page.png)
+
+* Product Listing:
+
+  ![ProductListW](/READMEmedia/wireframe_product_list.png)
+
+
+* Product Detail:
+
+  ![ProductDetailW](/READMEmedia/wireframe_product_details.png)
 
 ###  **Color Scheme**  
 The project follows a **Classic & Elegant** theme:  
@@ -259,6 +283,167 @@ The project follows a **Classic & Elegant** theme:
  * **Stripe API** (Secure payments)
  * **AWS S3** (Media storage)
  
+### Data Models & Relationships: 
+
+#### Orders App – Models & Relationships
+
+ * CartItem Model
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **user**                |        ForeignKey to CustomUser        |  Links to the user (nullable for guest/session users)  |
+    | **session_key** | CharField (nullable)| Session ID used for anonymous/guest carts | 
+    | **product**           | ForeignKey to Product |  Links to the product being added to the cart  |
+    | **size**       | ForeignKey to Size |  Optional size of the product  |
+    | **quantity**          |   PositiveIntegerField     |  Number of units added to the cart    |
+    | **customization**       | 	TextField (nullable)  |   Any user customization details (e.g., cake message)     |
+    | **added_at**| DateTimeField | Timestamp when item was added to cart |
+
+    ---
+
+
+   * Relation Summary: Each CartItem is linked to a product and optionally a user or a session. Size and customization are      optional extras.
+
+
+* Order Model:
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **user**  | ForeignKey to CustomUser |  User who placed the order (nullable for guest checkout)  |
+    | **order_number** |CharField (auto-generated) | Unique identifier using UUID | 
+    | **full_name**           | CharField | Shipping full name  |
+    | **email**       | EmailField |  Contact email  |
+    | **phone_number**          |   CharField     |   Phone number   |
+    | **country**       |  CharField |   Shipping country     |
+    | **postcode**| CharField | Postal code (optional) |
+    | **town_or_city**  |  CharField  | Town or city   |
+    |**street_address1/2** |CharField | Primary and secondary address lines|
+    | **county** | CharField | County (optional) |
+    | **billing_** | CharField |Mirrors shipping fields|
+    | **delivery_date** | DateField (optional) | User-selected delivery/pickup date |
+    | **delivery_time** | TimeField (optional) | User-selected delivery/pickup time |
+    | **date / created_at** | DateTimeField | Timestamp for order creation |
+    | **updated_at** | 	DateTimeField | 	Auto-updated on each save |
+    | **status** | CharField (choices) | Order status: pending, paid, shipped, delivered, etc. |
+    |**delivery_cost** | DecimalField | Automatically calculated based on threshold |
+    | **order_total** | DecimalField | 	Sum of order item prices |
+    | **grand_total** | DecimalField | Total including delivery charge |
+
+    ---
+  * Relation Summary: Each Order belongs to a user and has multiple OrderItems attached. It handles billing, shipping, totals, and delivery scheduling.
+
+
+* OrderItem Model
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **order**                |   ForeignKey to Order |  Link to the order this item belongs to |
+    | **product** | ForeignKey to Product | Snapshot of the product ordered |
+    | **size**       | ForeignKey to Size |  Size selected for the product  |
+    | **quantity**          |   PositiveIntegerField     |   Quantity of the product ordered   |
+    | **price_each**       |  	DecimalField  |    Price per unit (snapshot at the time of order)    |
+
+    ---
+  * Relation Summary: OrderItem connects a product and size to a specific order, storing quantity and unit price.
+
+
+#### Users App – Models & Relationships
+
+This model extends Django’s AbstractUser to include Stripe customer ID, as well as shipping and billing address fields.
+
+
+* CustomUser Model
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **username**  |   CharField |  	Inherited from AbstractUser – unique username |
+    | **email**         | EmailField | Inherited – required email address|
+    | **password**           | 	CharField |  Inherited – encrypted user password  |
+    | **stripe_customer_id** |   CharField   |   Stores Stripe customer ID for payment tracking (nullable, unique)  |
+
+    ---
+
+* Shipping Address Fields
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **shipping_full_name**                |   CharField | Full name of the shipping recipient|
+    | **shipping_phone** | CharField | Contact phone number|
+    | **shipping_street_address1**       | CharField |  Size selected for the product  |
+    | **shipping_street_address2**          |   CharField     |   	Primary address line  |
+    | **shipping_city**       |  	CharField  |    City   |
+    | **shipping_postcode**       |  	CharField |    Postal code   |
+    | **shipping_country**       |  		CountryField  |    Country selection (uses django-countries)    |
+
+    ---
+
+* Billing Address Fields
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **billing_full_name**                |   CharField | Full name for billing  |
+    | **billing_phone** | CharField | Billing contact phone number|
+    | **billing_street_address1**       | CharField |  Primary billing address |
+    | **billing_street_address2**          |   CharField     |   	Secondary billing address (optional)  |
+    | **billing_city**       |  	CharField  |    	Billing city   |
+    | **billing_postcode**       |  	CharField |    	Billing postal code  |
+    | **billing_country**       |  		CountryField  |   Billing country    |
+
+    ---
+  * Relationships:
+This model replaces Django's default User model and is used in foreign keys across the app, including Order.user and CartItem.user.
+
+
+* OrderItem Model
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **order**                |   ForeignKey to Order |  Link to the order this item belongs to |
+    | **product** | ForeignKey to Product | Snapshot of the product ordered |
+    | **size**       | ForeignKey to Size |  Size selected for the product  |
+    | **quantity**          |   PositiveIntegerField     |   Quantity of the product ordered   |
+    | **price_each**       |  	DecimalField  |    Price per unit (snapshot at the time of order)    |
+
+    ---
+
+
+* OrderItem Model
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **order**                |   ForeignKey to Order |  Link to the order this item belongs to |
+    | **product** | ForeignKey to Product | Snapshot of the product ordered |
+    | **size**       | ForeignKey to Size |  Size selected for the product  |
+    | **quantity**          |   PositiveIntegerField     |   Quantity of the product ordered   |
+    | **price_each**       |  	DecimalField  |    Price per unit (snapshot at the time of order)    |
+
+    ---
+
+
+* Model Relationships Diagram
+
+Users: 
+
+![UsersModelRelations](/READMEmedia/users_orders_relations.png)
+
+Orders:
+
+```
+CustomUser ─┬─────────────┐
+            │             │
+         CartItem      Order ─── OrderItem ─── Product
+            │             │                     │
+           Size         [Shipping & Billing]  ← Size
+
+```
  ### **Frontend**  
  * **HTML, CSS, JavaScript** (Custom UI)
  * **Bootstrap 5 & Crispy Forms**
@@ -378,19 +563,18 @@ python manage.py runserver
 ## Bugs Detected:
 #### [Menu](#features)
 
- - **Issue with Reservation Date Input**: 
+ - **Issue with email sending**: 
  
    **Resolution**: 
  
   
 ## Unfixed Bugs:
-  * All detected bugs have been fixed.
+  * Problem with google email setup to send emails notifications.
 
 ## Credits:
   *  To check the correct operation of most functions, the following was used:
      [Python Tutor](https://pythontutor.com/visualize.html#mode=edit)
-  *  Template use for a project was downloaded from https://themewagon.com/themes/
-
+  
 ### Other:
   
    * Much of the information about python was obtained from https://www.w3schools.com/python/.
