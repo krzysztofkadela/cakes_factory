@@ -12,21 +12,11 @@ Cake Factory is an **elegant e-commerce platform** built using **Django**. Custo
 This project was developed as part of a **Full-Stack Web Development course**, ensuring it meets industry standards in **security, UX, and functionality**.
 
 ## [Features](#features-1)
-* ### [MainPage](#main-page)
-  * #### [MainPageDelas](#main-page-offer-section)
-  * #### [MainPageLocation](#main-page-location-section)
-  * #### [MainPageCustomerComments](#main-page-customers-comments-section)
-* ### [Navbar](#navbar-1)
-* ### [About](#about-page)
-* ### [Menu Page](#menu-page-1)
-* ### [Account for Users](#user-sign-in--sign-up-pages)
-* ### [Footer Section](#footer-section-1)
-### [Technologies](#technologies-1)
-### [Programs_Used_in_project](#programs-used-in-project)
-### [Deployment](#deployment)
-### [Bugs Detected](#bugs-detected)
-### [Credits](#credits)
-* [Other](#other)
+## [User Experiance](#user-experience-ux)
+## [Technologies](#technology-stack)
+## [Installation](#installation--setup)
+## [Testing](#testing-1)
+
 
 ---
 
@@ -87,14 +77,14 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 
 ## About Page :
 #### Basic page not finish yet:
-#### [Avout](#features)
+#### [Menu](#features)
   ![About](/READMEmedia/main.png)
    * Info about restaurant
 
 ---
 
 ## Product List :
-#### [Product_list](#features)
+#### [Menu](#features)
 
   ![Product_list](/READMEmedia/product_list.png)
   ####  Product Display:
@@ -108,7 +98,7 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 ---
 
 ## Product details :
-#### [Product_detail](#features)
+#### [Menu](#features)
 
   ![Product_detail](/READMEmedia/product_detail.png)
   #### Product Image:
@@ -132,7 +122,7 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 ## Shopping Cart Page :
 #### [Menu](#features)
 
-  ![Menu](/READMEmedia/shopping_cart.png)
+  ![Shipping_Cart](/READMEmedia/shopping_cart.png)
   #### Cart Item List:
    * Displays a table/list view of all products added to the cart.
    * Each row contains:
@@ -236,6 +226,7 @@ This project was developed as part of a **Full-Stack Web Development course**, e
 ---
 
 ## User Experience (UX)
+#### [Menu](#features)
 
 ###  **Target Audience**  
 -  Cake lovers looking for **delicious treats**  
@@ -277,12 +268,15 @@ The project follows a **Classic & Elegant** theme:
 
 ##  Technology Stack:
 #### [Menu](#features)
+
+
  ### **Backend**
  * **Python & Django** (Django Framework)
  * **PostgreSQL** (Relational Database)
  * **Stripe API** (Secure payments)
  * **AWS S3** (Media storage)
  
+
 ### Data Models & Relationships: 
 
 #### Orders App – Models & Relationships
@@ -443,20 +437,23 @@ This model replaces Django's default User model and is used in foreign keys acro
 
     | FIeld Name              | Type                                    |   Description                                  |
     |-------------------------|-----------------------------------------|---------------------------------------------------|
-    | **name**                |   CharField|  Link to the order this item belongs to |
-    | **slug** | 	SlugField | Snapshot of the product ordered |
-    | **description**       | TextField|  Size selected for the product  |
-    | **price**          |   DecimalField    |   Quantity of the product ordered   |
-    | **category**       |  	ForeignKey |    Price per unit (snapshot at the time of order)    |
-    | **flavor**       |  	ForeignKey |    Price per unit (snapshot at the time of order)    |
-    | **sizes**       |  ManyToManyField |    Price per unit (snapshot at the time of order)    |
-    | **image**       |  	ImageField  |    Price per unit (snapshot at the time of order)    |
-    | **allergen_info**       |  	TextField |    Price per unit (snapshot at the time of order)    |
-    | **available**       |  	BooleanField |    Price per unit (snapshot at the time of order)    |
-    | **created_at**       |  DateTimeField  |    Price per unit (snapshot at the time of order)    |
+    | **name**                |   CharField |  Product name (must be unique). |
+    | **slug**                | 	SlugField | Auto-generated slug from name. |
+    | **description**         |   TextField | Description of the product.  |
+    | **price**               |   DecimalField    |   Base price of the product. |
+    | **category**       |  	ForeignKey |   Linked to Category (nullable).    |
+    | **flavor**       |  	ForeignKey |   Linked to Flavor (nullable).   |
+    | **sizes**       |  ManyToManyField |    	Linked to Size (can support multiple sizes).   |
+    | **image**       |  	ImageField  |   Product image  |
+    | **allergen_info**       |  	TextField |    Info like "Contains nuts".   |
+    | **available**       |  	BooleanField |  	Whether the product is available.   |
+    | **created_at**       |  DateTimeField  |   Auto-timestamp when product is added.   |
 
     ---
 
+  - category → Category
+  - flavor → Flavor
+  - sizes → Many-to-Many with Size
 
 * Model Relationships Diagram
 
@@ -474,10 +471,13 @@ CustomUser ─┬─────────────┐
            Size         [Shipping & Billing]  ← Size
 
 ```
+
+
  ### **Frontend**  
  * **HTML, CSS, JavaScript** (Custom UI)
  * **Bootstrap 5 & Crispy Forms**
  * **Django Templating**
+
 
  ### **Deployment & Hosting**
  * **Heroku** (Cloud hosting)
@@ -485,7 +485,8 @@ CustomUser ─┬─────────────┐
  * **AWS S3** (Static & media files)
  ---
 
-## 🏗 Installation & Setup
+
+## Installation & Setup
 
 ### 1️⃣ Clone the Repository  
 ```
@@ -589,17 +590,27 @@ python manage.py runserver
  - Role-based authentication (Admin vs. Customer)
  - CSRF protection enabled
 
+## Testing 
 
-## Bugs Detected:
+For a full breakdown of manual and automated testing, Lighthouse reports, and UI/UX validation, please refer to the full TESTING.md document.
+
+[View Testing Details](TESTING.md)
+
+
+### Bugs Detected
 #### [Menu](#features)
-
- - **Issue with email sending**: 
- 
-   **Resolution**: 
- 
+ * Email Sending Issue via Gmail(Production Only)
+  - In development, user verification emails were successfully displayed in the console.
+  - However, in production, Google email integration failed to send emails for user verification.
+  * Satatus: Not yet resolved
+  * Impact: New users cannot verify their email in the deployed version.
+  * Workaround: Manual admin activation if required.
   
-## Unfixed Bugs:
-  * Problem with google email setup to send emails notifications.
+## Unfixed Bugs
+  * Gmail Integration Failure
+  Sending email via Gmail SMTP in production resulted in an authentication error due to security restrictions.
+   - Future Improvement:
+    Using a dedicated email service like SendGrid, Mailgun, or Amazon SES for production email handling. These services are more reliable and secure for transactional email.
 
 ## Credits:
   *  To check the correct operation of most functions, the following was used:
