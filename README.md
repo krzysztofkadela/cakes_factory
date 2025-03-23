@@ -400,30 +400,60 @@ This model extends Django’s AbstractUser to include Stripe customer ID, as wel
 This model replaces Django's default User model and is used in foreign keys across the app, including Order.user and CartItem.user.
 
 
-* OrderItem Model
+#### Product App – Models & Relationships
+
+
+* Size Model
 
 
     | FIeld Name              | Type                                    |   Description                                  |
     |-------------------------|-----------------------------------------|---------------------------------------------------|
-    | **order**                |   ForeignKey to Order |  Link to the order this item belongs to |
-    | **product** | ForeignKey to Product | Snapshot of the product ordered |
-    | **size**       | ForeignKey to Size |  Size selected for the product  |
-    | **quantity**          |   PositiveIntegerField     |   Quantity of the product ordered   |
-    | **price_each**       |  	DecimalField  |    Price per unit (snapshot at the time of order)    |
-
+    | **name**                |   CharField|  Size label (e.g., Small, Large). |
+    | **slug** | SlugField | Auto-generated URL-friendly slug. |
+    
     ---
 
-
-* OrderItem Model
+* Category Model
 
 
     | FIeld Name              | Type                                    |   Description                                  |
     |-------------------------|-----------------------------------------|---------------------------------------------------|
-    | **order**                |   ForeignKey to Order |  Link to the order this item belongs to |
-    | **product** | ForeignKey to Product | Snapshot of the product ordered |
-    | **size**       | ForeignKey to Size |  Size selected for the product  |
-    | **quantity**          |   PositiveIntegerField     |   Quantity of the product ordered   |
-    | **price_each**       |  	DecimalField  |    Price per unit (snapshot at the time of order)    |
+    | **name**                |   CharField|  Size label (e.g., Small, Large). |
+    | **slug** | SlugField | Auto-generated URL-friendly slug. |
+    
+    ---
+  - Relations: None
+  - Notes: Linked to Product via category ForeignKey.
+
+* Flavor Model
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **name**                |   CharField|  Size label (e.g., Small, Large). |
+    | **slug** | SlugField | Auto-generated URL-friendly slug. |
+    
+    ---
+  - Relations: None
+  - Notes: Linked to Product via flavor ForeignKey.
+
+
+* Product Model
+
+
+    | FIeld Name              | Type                                    |   Description                                  |
+    |-------------------------|-----------------------------------------|---------------------------------------------------|
+    | **name**                |   CharField|  Link to the order this item belongs to |
+    | **slug** | 	SlugField | Snapshot of the product ordered |
+    | **description**       | TextField|  Size selected for the product  |
+    | **price**          |   DecimalField    |   Quantity of the product ordered   |
+    | **category**       |  	ForeignKey |    Price per unit (snapshot at the time of order)    |
+    | **flavor**       |  	ForeignKey |    Price per unit (snapshot at the time of order)    |
+    | **sizes**       |  ManyToManyField |    Price per unit (snapshot at the time of order)    |
+    | **image**       |  	ImageField  |    Price per unit (snapshot at the time of order)    |
+    | **allergen_info**       |  	TextField |    Price per unit (snapshot at the time of order)    |
+    | **available**       |  	BooleanField |    Price per unit (snapshot at the time of order)    |
+    | **created_at**       |  DateTimeField  |    Price per unit (snapshot at the time of order)    |
 
     ---
 
