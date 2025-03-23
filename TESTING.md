@@ -89,3 +89,30 @@
 | **Delete Newsletter Subscriber** | Select a subscriber, click "Delete", confirm deletion. | Subscriber is successfully removed from the newsletter list. | Pass |
 
 ---
+
+## Lighthouse Testing Results
+
+## Lighthouse Testing Results
+
+| Page                    | Performance | Accessibility | Best Practices | SEO  | Notes                          |
+|-------------------------|-------------|----------------|----------------|------|---------------------------------|
+| **Home Page**           | 95          | 94             | 96             | 100  | Loads fast, fully optimized     |
+| **Product List Page**   | 54          | 90             | 96             | 92  | Great listing speed & layout    |
+| **Product Detail Page** | 91          | 94             | 97             | 100  | Detail and image loads well     |
+| **Cart Page**           | 88          | 91             | 100            | 100  | JS-heavy interactions handled   |
+| **Checkout Page**       | 87          | 93             | 100            | 100  | Form validation & SEO good      |
+| **Login Page**          | 96          | 100            | 100            | 100  | Clean and simple auth form      |
+| **Register Page**       | 95          | 100            | 100            | 100  | Strong field labeling & ARIA    |
+| **Admin Management Page**| 89         | 92             | 100            | 100  | Data loads fine, minor delays   |
+
+---
+
+### Lighthouse Home Page: 
+
+![Main](/READMEmedia/lighthouse_main_1.png)
+
+![Main](/READMEmedia/lighthouse_main_2.png)
+
+### Lighthouse Product List Page:
+
+![Main](/READMEmedia/lighthouse_product_list.png)
