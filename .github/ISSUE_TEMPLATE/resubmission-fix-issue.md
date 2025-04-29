@@ -1,40 +1,45 @@
 ---
-name: Resubmission Fix Issue
-about: Use this template to document and fix assessment feedback issues.
-title: ''
-labels: bug
+name: 🚨 Resubmission Fix
+about: Track and resolve issues flagged in project assessment
+title: "[Fix] <Short Description of Issue>"
+labels: bug, resubmission
 assignees: ''
 
 ---
 
-## 🛠 Fix Issue: [Short title of the fix]  
-**Reason for Fix**:  
-[Explain the problem as highlighted in the project assessment.]
+## 🧩 Summary  
+Brief description of the issue identified during assessment.
 
----
+## 📌 Issue Reference  
+**Assessment Area:**  
+LO# - [Insert Learning Outcome Reference]  
+**Feedback Extract:**  
+> _Paste the relevant feedback here from assessor notes._
 
 ## ✅ Acceptance Criteria  
-- [ ] [What needs to be working to consider this fixed]  
-- [ ] [Add more checkboxes if needed]
+- [ ] The issue is reproduced and confirmed.
+- [ ] A solution is implemented and tested.
+- [ ] Functionality works as expected across different user roles/devices.
+- [ ] Code adheres to PEP8 and passes validation tools.
+- [ ] Related documentation (README, TESTING.md) updated.
 
----
+## 🧪 Testing Steps  
+1. Describe how to replicate the issue.  
+2. Describe how to test the fix after implementation.
 
-## 🚀 Tasks Breakdown  
+## 🛠 Tasks Breakdown  
 ### **Frontend**
-- [ ] [Any relevant front-end fixes]
+- [ ] Task 1
 
 ### **Backend**
-- [ ] [Relevant views/models/webhook updates]
+- [ ] Task 2
 
-### **Database**
-- [ ] [Changes to models, migrations if needed]
+### **Testing & Validation**
+- [ ] Manual test steps
+- [ ] Browser/device compatibility check
 
----
+## 🗂 Related Files  
+- List specific files or views related to the fix.
 
-## 📋 Related Assessment Feedback  
-_Paste the exact quote or link from the assessor’s notes._
-
----
-
-## 🛠 Additional Notes  
-_Add anything else you might need to keep in mind here (testing, dependencies, etc.)_
+## 💬 Notes  
+Additional notes or concerns related to the fix.
