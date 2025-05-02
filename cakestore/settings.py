@@ -161,7 +161,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Users must verify email before login
 ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = True  # Require email confirmation during signup
 ACCOUNT_USERNAME_MIN_LENGTH = 4
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'
 
 LOGIN_REDIRECT_URL = "/" # Redirect to main page
 LOGOUT_REDIRECT_URL = "/"# Redirect to main page
@@ -169,7 +168,7 @@ LOGOUT_REDIRECT_URL = "/"# Redirect to main page
 # Email Confirmation Settings
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Confirmation link expires after 3 days
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[My Cake Store] "  # Customize email subject
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"  # Set to "https" in production
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = os.getenv("ACCOUNT_DEFAULT_HTTP_PROTOCOL", "https")
 
 # Disable immediate login after signup (forces email verification)
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
