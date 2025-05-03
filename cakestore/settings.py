@@ -148,7 +148,7 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Cake Factory <cakefactorystore24@gmail.com>")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@cakefactory.com")
 
 # Use Custom Model
 
@@ -157,7 +157,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 # Authentication Settings
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow both username and email for login
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Users must verify email before login
+ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "mandatory")
 ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = True  # Require email confirmation during signup
 ACCOUNT_USERNAME_MIN_LENGTH = 4
 LOGIN_URL = '/accounts/login/'
