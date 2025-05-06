@@ -4,21 +4,20 @@ from django.conf import settings
 from products.models import Product
 from types import SimpleNamespace
 
-
 class StaticViewSitemap(Sitemap):
     priority = 0.8
     changefreq = "monthly"
 
     def items(self):
         return [
-            "home",
-            "cart_view",
-            "checkout",
-            "order_history",
-            "payment_success",
+            "home", 
+            "cart_view", 
+            "checkout", 
+            "order_history", 
+            "payment_success", 
             "payment_cancel",
-            "user_profile",
-            "edit_profile",
+            "user_profile",  
+            "edit_profile"
         ]
 
     def location(self, item):
@@ -26,7 +25,7 @@ class StaticViewSitemap(Sitemap):
 
     def get_urls(self, site=None, **kwargs):
         if not site:
-            domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
+            domain = settings.SITE_URL.replace("https://", "").replace("http://", "").rstrip("/")
             site = SimpleNamespace(domain=domain, name="Cake Factory")
         return super().get_urls(site=site, **kwargs)
 
@@ -43,6 +42,6 @@ class ProductSitemap(Sitemap):
 
     def get_urls(self, site=None, **kwargs):
         if not site:
-            domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
+            domain = settings.SITE_URL.replace("https://", "").replace("http://", "").rstrip("/")
             site = SimpleNamespace(domain=domain, name="Cake Factory")
         return super().get_urls(site=site, **kwargs)
