@@ -1,9 +1,10 @@
 from django.contrib.sitemaps import Sitemap
 from django.shortcuts import reverse
+from django.contrib.sites.models import Site
+from django.conf import settings
 from products.models import Product
 
 class StaticViewSitemap(Sitemap):
-    """Sitemap for static pages"""
     priority = 0.8
     changefreq = "monthly"
 
@@ -22,9 +23,13 @@ class StaticViewSitemap(Sitemap):
     def location(self, item):
         return reverse(item)
 
+    def get_urls(self, site=None, **kwargs):
+        if not site:
+            domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
+            site = Site(domain=domain, name="Cake Factory")
+        return super().get_urls(site=site, **kwargs)
 
 class ProductSitemap(Sitemap):
-    """Sitemap for product pages"""
     priority = 0.9
     changefreq = "weekly"
 
@@ -33,3 +38,9 @@ class ProductSitemap(Sitemap):
 
     def location(self, item):
         return f"/products/{item.slug}/"
+
+    def get_urls(self, site=None, **kwargs):
+        if not site:
+            domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
+            site = Site(domain=domain, name="Cake Factory")
+        return super().get_urls(site=site, **kwargs)
