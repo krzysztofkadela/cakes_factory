@@ -2,6 +2,7 @@ from django.contrib.sitemaps import Sitemap
 from django.shortcuts import reverse
 from django.conf import settings
 from products.models import Product
+from types import SimpleNamespace
 
 
 class StaticViewSitemap(Sitemap):
@@ -26,7 +27,7 @@ class StaticViewSitemap(Sitemap):
     def get_urls(self, site=None, **kwargs):
         if not site:
             domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
-            site = type("Site", (), {"domain": domain, "name": "Cake Factory"})()
+            site = SimpleNamespace(domain=domain, name="Cake Factory")
         return super().get_urls(site=site, **kwargs)
 
 
@@ -43,5 +44,5 @@ class ProductSitemap(Sitemap):
     def get_urls(self, site=None, **kwargs):
         if not site:
             domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
-            site = type("Site", (), {"domain": domain, "name": "Cake Factory"})()
+            site = SimpleNamespace(domain=domain, name="Cake Factory")
         return super().get_urls(site=site, **kwargs)
