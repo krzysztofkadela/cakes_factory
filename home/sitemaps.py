@@ -1,8 +1,8 @@
 from django.contrib.sitemaps import Sitemap
 from django.shortcuts import reverse
-from django.contrib.sites.models import Site
 from django.conf import settings
 from products.models import Product
+
 
 class StaticViewSitemap(Sitemap):
     priority = 0.8
@@ -10,14 +10,14 @@ class StaticViewSitemap(Sitemap):
 
     def items(self):
         return [
-            "home", 
-            "cart_view", 
-            "checkout", 
-            "order_history", 
-            "payment_success", 
+            "home",
+            "cart_view",
+            "checkout",
+            "order_history",
+            "payment_success",
             "payment_cancel",
-            "user_profile",  
-            "edit_profile"
+            "user_profile",
+            "edit_profile",
         ]
 
     def location(self, item):
@@ -26,8 +26,9 @@ class StaticViewSitemap(Sitemap):
     def get_urls(self, site=None, **kwargs):
         if not site:
             domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
-            site = Site(domain=domain, name="Cake Factory")
+            site = type("Site", (), {"domain": domain, "name": "Cake Factory"})()
         return super().get_urls(site=site, **kwargs)
+
 
 class ProductSitemap(Sitemap):
     priority = 0.9
@@ -42,5 +43,5 @@ class ProductSitemap(Sitemap):
     def get_urls(self, site=None, **kwargs):
         if not site:
             domain = settings.SITE_URL.replace("https://", "").replace("http://", "")
-            site = Site(domain=domain, name="Cake Factory")
+            site = type("Site", (), {"domain": domain, "name": "Cake Factory"})()
         return super().get_urls(site=site, **kwargs)
