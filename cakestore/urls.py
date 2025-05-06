@@ -39,16 +39,7 @@ sitemaps = {
 
 # Override domain & protocol for sitemap URLs
 urlpatterns += [
-    path(
-        "sitemap.xml",
-        sitemap,
-        {
-            "sitemaps": sitemaps,
-            "protocol": "https",
-            "domain": "cake-factory-65cd55cbb35d.herokuapp.com",
-        },
-        name="sitemap",
-    ),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
 ]
 
 # Custom 404 handler

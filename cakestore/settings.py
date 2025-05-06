@@ -138,6 +138,13 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
+SITEMAP_PROTOCOL = "https"
+
+SITEMAP_DOMAIN = os.getenv(
+    "SITEMAP_DOMAIN",
+    SITE_URL.replace("https://", "").replace("http://", "").rstrip("/")
+)
+
 SITE_URL = os.getenv("SITE_URL", "http://localhost:8000")
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = os.getenv("ACCOUNT_DEFAULT_HTTP_PROTOCOL", "http")
 
