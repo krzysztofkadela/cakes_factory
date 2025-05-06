@@ -180,11 +180,11 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ─── STATIC & MEDIA ─────────────────────────────────────────────────────────
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "")
-AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "")
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+# AWS S3 Storage Configuration
+AWS_STORAGE_BUCKET_NAME = "cake-factory-65cd55cbb35d"
+AWS_S3_REGION_NAME = "eu-west-1"
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 
 AWS_S3_OBJECT_PARAMETERS = {
@@ -192,16 +192,20 @@ AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=94608000",
 }
 
+# Define locations for Static & Media files
 STATICFILES_LOCATION = "static"
 MEDIAFILES_LOCATION = "media"
 
+# Use Custom Storage Classes
 STATICFILES_STORAGE = "custom_storages.StaticStorage"
 DEFAULT_FILE_STORAGE = "custom_storages.MediaStorage"
 
+# Set Static and Media URLs
 STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/"
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/"
 
-if DEBUG:
+# For Local Development, use normal filesystem
+if os.getenv("DEVELOPMENT") == "True":
     STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
     STATIC_URL = "/static/"
