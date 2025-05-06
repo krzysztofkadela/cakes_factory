@@ -4,6 +4,19 @@ from django.conf import settings
 from products.models import Product
 from types import SimpleNamespace
 
+
+def get_site_namespace():
+    """Ensure valid domain and protocol for sitemap entries."""
+    domain = getattr(settings, "SITEMAP_DOMAIN", None)
+    protocol = getattr(settings, "SITEMAP_PROTOCOL", "https")
+
+    # Fallback to SITE_URL if domain is missing
+    if not domain:
+        domain = getattr(settings, "SITE_URL", "example.com").replace("https://", "").replace("http://", "").rstrip("/")
+
+    return SimpleNamespace(domain=domain, name="Cake Factory"), protocol
+
+
 class StaticViewSitemap(Sitemap):
     changefreq = "monthly"
     priority = 0.8
@@ -24,12 +37,8 @@ class StaticViewSitemap(Sitemap):
         return reverse(item)
 
     def get_urls(self, site=None, **kwargs):
-        if site is None:
-            site = SimpleNamespace(
-                domain=settings.SITEMAP_DOMAIN,
-                name="Cake Factory"
-            )
-        return super().get_urls(site=site, protocol=settings.SITEMAP_PROTOCOL)
+        site, protocol = get_site_namespace()
+        return super().get_urls(site=site, protocol=protocol)
 
 
 class ProductSitemap(Sitemap):
@@ -37,15 +46,11 @@ class ProductSitemap(Sitemap):
     priority = 0.9
 
     def items(self):
-        return Product.objects.filter(available=True)
+        return Product.objects.filter(available=True).order_by("id")
 
     def location(self, item):
         return f"/products/{item.slug}/"
 
     def get_urls(self, site=None, **kwargs):
-        if site is None:
-            site = SimpleNamespace(
-                domain=settings.SITEMAP_DOMAIN,
-                name="Cake Factory"
-            )
-        return super().get_urls(site=site, protocol=settings.SITEMAP_PROTOCOL)
+        site, protocol = get_site_namespace()
+        return super().get_urls(site=site, protocol=protocol)
