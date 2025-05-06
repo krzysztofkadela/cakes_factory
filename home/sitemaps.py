@@ -1,5 +1,6 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
+from django.conf import settings
 from products.models import Product
 
 
@@ -21,7 +22,8 @@ class StaticViewSitemap(Sitemap):
         ]
 
     def location(self, item):
-        return reverse(item)
+        # Prefix with the site URL to ensure correct domain in production
+        return f"{settings.SITE_URL}{reverse(item)}"
 
 
 class ProductSitemap(Sitemap):
@@ -33,4 +35,5 @@ class ProductSitemap(Sitemap):
         return Product.objects.filter(available=True)
 
     def location(self, item):
-        return reverse("product_detail", args=[item.pk])
+        # Use named URL for product detail and prefix with site URL
+        return f"{settings.SITE_URL}{reverse('product_detail', args=[item.pk])}"

@@ -1,20 +1,3 @@
-"""
-URL configuration for cakestore project.
-
-The `urlpatterns` list routes URLs to views. For more information:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL:  path('blog/', include('blog.urls'))
-"""
-
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
@@ -27,23 +10,24 @@ from home.sitemaps import StaticViewSitemap, ProductSitemap
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/signup/", CustomSignupView.as_view(),
-         name="account_signup"),
+    path("accounts/signup/", CustomSignupView.as_view(), name="account_signup"),
     path("accounts/", include("allauth.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
-    path("", include("home.urls")),  # Homepage URL
-    path("", include("newsletter.urls")),  # Newsletter app
+    path("", include("home.urls")),         # Homepage URL
+    path("", include("newsletter.urls")),   # Newsletter app
     path("products/", include("products.urls")),  # Products app
-    path("orders/", include("orders.urls")),  # Orders app
-    path("users/", include("users.urls")),  # Users app
+    path("orders/", include("orders.urls")),      # Orders app
+    path("users/", include("users.urls")),        # Users app
 ]
 
 # Serve robots.txt
 urlpatterns += [
     path(
         "robots.txt",
-        TemplateView.as_view(template_name="robots.txt",
-                             content_type="text/plain"),
+        TemplateView.as_view(
+            template_name="robots.txt",
+            content_type="text/plain"
+        ),
     ),
 ]
 
@@ -53,8 +37,18 @@ sitemaps = {
     "products": ProductSitemap(),
 }
 
+# Override domain & protocol for sitemap URLs
 urlpatterns += [
-    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
+    path(
+        "sitemap.xml",
+        sitemap,
+        {
+            "sitemaps": sitemaps,
+            "protocol": "https",
+            "domain": "cake-factory-65cd55cbb35d.herokuapp.com",
+        },
+        name="sitemap",
+    ),
 ]
 
 # Custom 404 handler
@@ -62,5 +56,7 @@ handler404 = custom_404_view
 
 # Serve media files in DEBUG mode
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
