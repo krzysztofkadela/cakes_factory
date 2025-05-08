@@ -318,7 +318,13 @@
             </table>
             <div class="text-end">
                 <strong>Total: €{{ total_price|floatformat:2 }}</strong><br>
-                <strong>Delivery: €{{ delivery_charge|floatformat:2 }}</strong><br>
+                <strong>Delivery: 
+                    {% if delivery_charge == 0 %}
+                        Free
+                    {% else %}
+                        €{{ delivery_charge|floatformat:2 }}
+                    {% endif %}
+                </strong><br>
                 <strong>Grand Total: €{{ grand_total|floatformat:2 }}</strong>
             </div>
             {% else %}

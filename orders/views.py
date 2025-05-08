@@ -274,8 +274,81 @@ def clear_cart_on_logout(sender, request, user, **kwargs):
     request.session["cart"] = {}
     request.session.modified = True
 
-
 def checkout_page(request):
+    """
+    Displays the checkout.html page with shipping/billing fields
+    and a list of cart items. No order creation here -- that's
+    handled by create_checkout_session when the user submits the form.
+    """
+
+    from decimal import Decimal
+
+    # Gather cart items so the template can display them properly.
+    cart_items = []
+    total_price = Decimal("0.00")
+
+    if request.user.is_authenticated:
+        db_cart_items = CartItem.objects.filter(user=request.user)
+        if not db_cart_items.exists():
+            messages.error(request, "Your cart is empty!")
+            return redirect("cart_view")
+
+        for ci in db_cart_items:
+            subtotal = ci.adjusted_price * ci.quantity
+            total_price += subtotal
+            cart_items.append({
+                "product": ci.product,
+                "size": ci.size,
+                "quantity": ci.quantity,
+                "price": ci.adjusted_price,
+                "subtotal": subtotal,
+            })
+    else:
+        session_cart = request.session.get("cart", {})
+        if not session_cart:
+            messages.error(request, "Your cart is empty!")
+            return redirect("cart_view")
+
+        for key, item in session_cart.items():
+            if "_" in key:
+                product_id, size_id = key.split("_")
+            else:
+                product_id, size_id = key, None
+            try:
+                product = Product.objects.get(id=product_id)
+                size = Size.objects.get(id=size_id) if size_id else None
+            except (Product.DoesNotExist, Size.DoesNotExist):
+                continue
+
+            subtotal = Decimal(item["price"]) * item["quantity"]
+            total_price += subtotal
+            cart_items.append({
+                "product": product,
+                "size": size,
+                "quantity": item["quantity"],
+                "price": Decimal(item["price"]),
+                "subtotal": subtotal,
+            })
+
+    # Delivery & grand total calculation
+    free_delivery_threshold = Decimal(getattr(settings, "FREE_DELIVERY_THRESHOLD", "50.00"))
+    standard_delivery_charge = Decimal(getattr(settings, "STANDARD_DELIVERY_CHARGE", "5.00"))
+
+    delivery_charge = Decimal("0.00")
+    if total_price < free_delivery_threshold:
+        delivery_charge = standard_delivery_charge
+
+    grand_total = total_price + delivery_charge
+
+    return render(request, "orders/checkout.html", {
+        "cart_items": cart_items,
+        "total_price": total_price,
+        "delivery_charge": delivery_charge,
+        "grand_total": grand_total,
+        "free_delivery_threshold": free_delivery_threshold,  # ✅ now available in template
+    })
+
+def checkout_pageold(request):
     """
     Displays the checkout.html page with shipping/billing fields
     and a list of cart items. No order creation here -- that's
@@ -329,7 +402,7 @@ def checkout_page(request):
                 "subtotal": subtotal,
             })
 
-    # Delivery & grand total (optional)
+    # Delivery & grand total 
     delivery_charge = Decimal("0.00")
     if total_price < Decimal(settings.FREE_DELIVERY_THRESHOLD):
         delivery_charge = Decimal(settings.STANDARD_DELIVERY_CHARGE)
