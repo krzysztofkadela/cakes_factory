@@ -345,7 +345,7 @@ def checkout_page(request):
         "total_price": total_price,
         "delivery_charge": delivery_charge,
         "grand_total": grand_total,
-        "free_delivery_threshold": free_delivery_threshold,  # ✅ now available in template
+        "free_delivery_threshold": free_delivery_threshold,
     })
 
 def checkout_pageold(request):
