@@ -41,6 +41,11 @@ ALLOWED_HOSTS = [
 ]
 
 
+# Delivery Fee Settings
+FREE_DELIVERY_THRESHOLD = float(os.getenv("FREE_DELIVERY_THRESHOLD", 50.00))
+STANDARD_DELIVERY_CHARGE = float(os.getenv("STANDARD_DELIVERY_CHARGE", 5.00))
+
+
 # ─── STRIPE ─────────────────────────────────────────────────────────────────
 STRIPE_CURRENCY = "usd"
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
