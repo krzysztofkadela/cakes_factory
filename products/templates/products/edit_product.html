@@ -1,48 +1,66 @@
 {% extends "base.html" %}
+{% load static %}
+{% load form_extras %}  {# Ensure this loads your custom template filter #}
+
 {% block title %}Edit Product - Cake Factory{% endblock %}
 
 {% block content %}
 <div class="container">
     <h2 class="mb-4">✏️ Edit Product: {{ product.name }}</h2>
 
-    <div class="card shadow-sm p-4">
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+    <div class="row">
+        <div class="col-md-10 offset-md-1 col-lg-8 offset-lg-2">
+            <div class="card shadow-sm p-4">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
 
-            {% for field in form %}
-                <div class="mb-3">
-                    <label class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                        <div class="text-danger small">
-                            {{ field.errors|striptags }}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                            </label>
+                            {{ field|add_class:"form-control" }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="text-danger small">
+                                    {{ field.errors|striptags }}
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                </div>
-            {% endfor %}
+                    {% endfor %}
 
-            <!-- Image Preview -->
-            <div class="mb-3">
-                <label class="form-label">Current Image</label><br>
-                {% if product.image %}
-                    <img id="imagePreview" src="{{ product.image.url }}" class="img-fluid rounded shadow-sm" width="200">
-                {% else %}
-                    <p class="text-muted">No image uploaded.</p>
-                {% endif %}
+                    <!-- Image Preview -->
+                    <div class="mb-3">
+                        <label class="form-label">Current Image</label><br>
+                        {% if product.image %}
+                            <img id="imagePreview" src="{{ product.image.url }}" class="img-fluid rounded shadow-sm mb-2" width="100%">
+                        {% else %}
+                            <p class="text-muted">No image uploaded.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Form Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i> Update Product
+                        </button>
+                        <a href="{% url 'user_profile' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                    </div>
+                </form>
             </div>
-
-            <button type="submit" class="btn btn-primary">Update Product</button>
-            <a href="{% url 'user_profile' %}" class="btn btn-secondary">Cancel</a>
-        </form>
+        </div>
     </div>
 </div>
 
-<!-- JavaScript for Image Preview -->
 <script>
     function previewImage(event) {
-        let reader = new FileReader();
-        reader.onload = function(){
-            let output = document.getElementById("imagePreview");
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById("imagePreview");
             output.src = reader.result;
         };
         reader.readAsDataURL(event.target.files[0]);

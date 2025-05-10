@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Edit Product - Cake Factory{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">✏️ Edit Product: {{ product.name }}</h2>
+
+    <div class="card shadow-sm p-4">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small">
+                            {{ field.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <!-- Image Preview -->
+            <div class="mb-3">
+                <label class="form-label">Current Image</label><br>
+                {% if product.image %}
+                    <img id="imagePreview" src="{{ product.image.url }}" class="img-fluid rounded shadow-sm" width="200">
+                {% else %}
+                    <p class="text-muted">No image uploaded.</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update Product</button>
+            <a href="{% url 'user_profile' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript for Image Preview -->
+<script>
+    function previewImage(event) {
+        let reader = new FileReader();
+        reader.onload = function(){
+            let output = document.getElementById("imagePreview");
+            output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
+{% endblock %}
