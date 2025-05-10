@@ -253,6 +253,26 @@ main {
   .footer .newsletter input {
     width: 100%;
   }
+    .table td:last-child,
+  .table th:last-child {
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  .table td:last-child .btn {
+    display: inline-block;
+    margin-bottom: 5px;
+  }
+
+  .table td,
+  .table th {
+    vertical-align: middle;
+  }
+
+  .table td a.btn-sm {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
 }
 
 /* Fix for ultra-wide screens */

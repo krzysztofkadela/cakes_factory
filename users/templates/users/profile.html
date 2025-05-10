@@ -31,34 +31,42 @@
     <!-- Order History -->
     <h3 class="mb-3">🛍 Order History</h3>
     {% if orders %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Order #</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td><a href="{% url 'order_detail' order.order_number %}">#{{ order.order_number }}</a></td>
-                <td>{{ order.created_at|date:"d M Y" }}</td>
-                <td>€{{ order.grand_total|floatformat:2 }}</td>
-                <td>{{ order.get_status_display }}</td>
-                <td>
-                    {% if order.status == "pending" or order.status == "failed" %}
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Order #</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <a href="{% url 'order_detail' order.order_number %}">
+                            #{{ order.order_number }}
+                        </a>
+                    </td>
+                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                    <td>€{{ order.grand_total|floatformat:2 }}</td>
+                    <td>{{ order.get_status_display }}</td>
+                    <td>
+                        {% if order.status == "pending" or order.status == "failed" %}
                         <a href="{% url 'retry_payment' order.order_number %}" class="btn btn-sm btn-warning">
                             🔄 Retry Payment
                         </a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <p class="alert alert-warning">No orders found.</p>
     {% endif %}
