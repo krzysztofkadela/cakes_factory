@@ -12,6 +12,7 @@ Cake Factory is an **elegant e-commerce platform** built using **Django**. Custo
 This project was developed as part of a **Full-Stack Web Development course**, ensuring it meets industry standards in **security, UX, and functionality**.
 
 ## [Features](#features-1)
+## [E-commerce Business Model](#e-commerce-business-model-1)
 ## [User Experiance](#user-experience-ux)
 ## [Technologies](#technology-stack)
 ## [Installation](#installation--setup)
@@ -259,6 +260,44 @@ All wireframes were initially created using Balsamiq before development began.
 * Product Detail:
 
   ![ProductDetailW](/READMEmedia/wireframe_product_details.png)
+
+---
+
+# E-commerce Business Model
+#### [Menu](#features)
+
+### Business Type: B2C (Business to Consumer)
+
+Cake Factory is designed as a B2C (Business to Consumer) e-commerce platform. It serves individual customers looking to purchase custom cakes and cupcakes for personal events and celebrations.
+
+### Purpose & Target Audience
+The primary purpose of Cake Factory is to:
+- Provide customers with a seamless online shopping experience for **premium cakes & cupcakes.**
+- Offer **customization** options for special occasions (birthdays, weddings, corporate events).
+- Enable customers to conveniently **order, pay, and schedule delivery/pickup online.**
+
+#### Target Audience:
+ - Individuals planning personal events (birthdays, weddings, parties).
+ - Families looking for quality baked goods.
+ - Cake enthusiasts wanting to try artisan flavors and designs.
+ - Local community members seeking reliable, fresh cake delivery.
+
+### Marketing Strategy & Tools
+To reach and engage the target audience, Cake Factory employs the following marketing strategies:
+- Facebook Business Page: For local visibility, customer engagement, and showcasing new products.
+- Newsletter Subscription: Regular updates on promotions, new flavors, and exclusive discounts.
+- SEO Optimization: Carefully crafted meta tags, sitemap.xml, robots.txt, and canonical links for better search engine visibility.
+- Social Proof: User reviews and testimonials (future enhancement) to build trust.
+
+### Value Proposition & Core Selling Points
+- Custom-made cakes tailored to customer needs.
+- High-quality ingredients with an emphasis on freshness.
+- Elegant design & presentation for every order.
+- Convenient online ordering & secure payments via Stripe.
+- Flexible delivery/pickup scheduling.
+- User-friendly shopping experience on all devices.
+
+---
 
 ###  **Color Scheme**  
 The project follows a **Classic & Elegant** theme:  
