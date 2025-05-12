@@ -26,6 +26,11 @@ body {
   color: #5D4037; /* Rich Chocolate */
 }
 
+/* Hide the main section on the homepage */
+body.homepage main {
+  display: none;
+}
+
 /* === Navigation Bar (Glassmorphism) === */
 .navbar {
   background-color: rgba(232, 195, 158, 0.9); /* Soft Gold with slight transparency */
@@ -120,13 +125,85 @@ main {
 /* === Messages & Alerts === */
 .messages-container {
   position: fixed;
-  top: 120px;
+  top: 90px;  /* Adjusted to fit below the navbar */
   right: 20px;
-  max-width: 350px;
-  z-index: 1050;
+  max-width: 400px;
+  min-width: 300px;
+  z-index: 9999;
+  animation: fadeIn 0.5s ease-in-out;
 }
+
+/* Soft & Transparent Alert Backgrounds */
 .alert {
-  opacity: 0.95;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.15);
+  opacity: 0.95; /* Slight transparency */
+}
+
+/* Success - Light Green with Transparency */
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.8); /* Green */
+  color: white;
+  border-left: 5px solid rgba(30, 126, 52, 0.9); /* Darker Green */
+}
+
+/* Error - Soft Red */
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.8); /* Red */
+  color: white;
+  border-left: 5px solid rgba(176, 42, 55, 0.9);
+}
+
+/* Warning - Soft Yellow */
+.alert-warning {
+  background-color: rgba(255, 193, 7, 0.85); /* Yellow */
+  color: #5D4037; /* Dark Chocolate */
+  border-left: 5px solid rgba(211, 158, 0, 0.9);
+}
+
+/* Info - Soft Gold */
+.alert-info {
+  background-color: rgba(232, 195, 158, 0.85); /* Soft Gold */
+  color: #5D4037; /* Dark Chocolate */
+  border-left: 5px solid rgba(180, 140, 100, 0.9);
+}
+
+/* Smooth Fade-Out Effect */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-out {
+  animation: fadeOut 0.5s ease-in-out;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* ✅ Custom Close Button */
+.custom-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; /* Small square */
+  height: 24px;
+  background-color: #5D4037; /* Dark Chocolate */
+  color: white;
+  border: 2px solid white; /* White border */
+  border-radius: 4px; /* Slight rounding */
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease-in-out;
+}
+
+/* ✅ Hover effect */
+.custom-close-btn:hover {
+  background-color: #3E2C27; /* Slightly darker chocolate */
+  transform: scale(1.1);
 }
 
 /* === Checkout Form Enhancements === */
@@ -142,7 +219,7 @@ main {
 }
 
 .py-5 {
-  padding-top: 0 !important;
+  padding-top: 12vh !important;
   padding-bottom: 0 !important;
 }
 
@@ -175,5 +252,33 @@ main {
 @media (max-width: 768px) {
   .footer .newsletter input {
     width: 100%;
+  }
+    .table td:last-child,
+  .table th:last-child {
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  .table td:last-child .btn {
+    display: inline-block;
+    margin-bottom: 5px;
+  }
+
+  .table td,
+  .table th {
+    vertical-align: middle;
+  }
+
+  .table td a.btn-sm {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Fix for ultra-wide screens */
+@media (min-width: 1900px) {
+  .hero {
+    min-height: 82vh !important;
+    height: auto;
   }
 }

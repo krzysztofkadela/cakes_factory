@@ -1,32 +1,17 @@
 /*!
-* Start Bootstrap - Shop Homepage v5.0.6 (https://startbootstrap.com/template/shop-homepage)
-* Copyright 2013-2023 Start Bootstrap
-* Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
+* Start Bootstrap - Shop Homepage v5.0.6
+* Licensed under MIT
 */
 
-// Auto-close alerts after 5 seconds with fade-out effect
-document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(function () {
-        let alerts = document.querySelectorAll(".alert");
-        alerts.forEach(alert => {
-            alert.classList.add("fade-out"); // Apply fade-out CSS
-            setTimeout(() => {
-                if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
-                    let bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }
-            }, 500); // Delay removal to match fade-out animation
-        });
-    }, 5000);
-});
-
+// ---------------------------
 // Add to Cart with AJAX
+// ---------------------------
 document.addEventListener("DOMContentLoaded", function () {
     const addToCartForms = document.querySelectorAll(".add-to-cart-form");
 
     addToCartForms.forEach((form) => {
         form.addEventListener("submit", function (event) {
-            event.preventDefault();  // Prevent full page reload
+            event.preventDefault();
 
             const formData = new FormData(this);
             const actionUrl = this.getAttribute("action");
@@ -34,9 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
             fetch(actionUrl, {
                 method: "POST",
                 body: formData,
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                },
+                headers: { "X-Requested-With": "XMLHttpRequest" },
             })
             .then(response => response.json())
             .then(data => {
@@ -46,15 +29,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.getElementById("cart-total").innerText = `€${data.cart_total_price.toFixed(2)}`;
                     }
 
-                    // Success Message
                     const successMessage = document.createElement("div");
                     successMessage.classList.add("alert", "alert-success", "mt-2");
                     successMessage.innerHTML = "Item added to cart!";
                     document.body.appendChild(successMessage);
 
-                    setTimeout(() => successMessage.remove(), 3000); // Auto-remove
+                    setTimeout(() => successMessage.remove(), 3000);
                 } else {
-                    window.location.href = actionUrl;  
+                    window.location.href = actionUrl;
                 }
             })
             .catch(error => console.error("Error adding to cart:", error));
@@ -62,7 +44,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// ---------------------------
 // Dynamic Price Update
+// ---------------------------
 document.addEventListener("DOMContentLoaded", function () {
     const sizeDropdown = document.getElementById("size");
     const priceDisplay = document.getElementById("product-price");
@@ -83,32 +67,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+// ---------------------------
 // Checkout Validation & Submission
+// ---------------------------
 document.addEventListener("DOMContentLoaded", function () {
     const payButton = document.getElementById("pay-with-stripe");
     const checkoutForm = document.getElementById("checkout-form");
 
     if (payButton && checkoutForm) {
         payButton.addEventListener("click", function (event) {
-            event.preventDefault(); 
-
+            event.preventDefault();
             if (validateCheckoutForm()) {
-                checkoutForm.submit(); 
+                checkoutForm.submit();
             }
         });
-    } else {
-        console.error("⚠️ Checkout form or pay button not found!");
     }
 });
 
-// Function to validate checkout form before submitting
 function validateCheckoutForm() {
     let isValid = true;
 
-    // Remove previous error messages
     document.querySelectorAll(".error-message").forEach(el => el.remove());
 
-    // Get form fields
     const formFields = {
         full_name: { field: document.querySelector("input[name='full_name']"), error: "Full Name is required." },
         email: { field: document.querySelector("input[name='email']"), error: "Valid email is required." },
@@ -118,11 +98,9 @@ function validateCheckoutForm() {
         country: { field: document.querySelector("select[name='country']"), error: "Country selection is required." }
     };
 
-    // Validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[\d\s\-+()]{7,15}$/;
 
-    // Validate fields
     for (let key in formFields) {
         let fieldData = formFields[key];
         let field = fieldData.field;
@@ -147,7 +125,6 @@ function validateCheckoutForm() {
     return isValid;
 }
 
-// Displays an error message below the input field
 function showError(field, message) {
     if (field) {
         const errorElement = document.createElement("div");
@@ -158,36 +135,80 @@ function showError(field, message) {
     }
 }
 
-// Subscription form
-document.addEventListener("DOMContentLoaded", function () {
+// ---------------------------
+// Newsletter signup – AJAX
+// ---------------------------
+document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("newsletter-form");
+    const box = document.getElementById("newsletter-msg");
 
-    if (form) {
-        form.addEventListener("submit", function (event) {
-            event.preventDefault(); // Stop normal form submission
+    if (!form || !box) return;
 
-            let formData = new FormData(form);
-
-            fetch(form.action, {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest" // Tells Django it's an AJAX request
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                let messageBox = document.getElementById("message-box");
-
-                if (data.success) {
-                    messageBox.innerHTML = `<div class="alert alert-success">${data.success}</div>`;
-                } else if (data.error) {
-                    messageBox.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
-                }
-
-                form.reset(); // Reset form after submission
-            })
-            .catch(error => console.error("Error:", error));
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+        const data = new FormData(form);
+        fetch(form.action, {
+            method : "POST",
+            body   : data,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken"     : data.get("csrfmiddlewaretoken")
+            }
+        })
+        .then(r => r.json())
+        .then(j => {
+            const cls = j.success ? "success" : "danger";
+            const txt = j.success || j.error || "⚠️ Something went wrong.";
+            box.innerHTML = `
+              <div class="alert alert-${cls} alert-dismissible fade show" role="alert">
+                ${txt}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>`;
+            if (j.success) form.reset();
+        })
+        .catch(err => {
+            console.error("Newsletter error:", err);
+            box.innerHTML = `
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                ⚠️ Server error. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>`;
         });
-    }
+    });
 });
+
+// ---------------------------
+// Auto-close alerts after 5s (Page Load & Dynamic)
+// ---------------------------
+function autoCloseAlerts() {
+    setTimeout(() => {
+        const alerts = document.querySelectorAll(".alert");
+        alerts.forEach(alert => {
+            if (!alert.classList.contains("fading")) {
+                alert.classList.add("fading");
+                alert.classList.add("fade-out");
+                setTimeout(() => {
+                    if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
+                        let bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        bsAlert.close();
+                    } else {
+                        alert.remove();
+                    }
+                }, 500);
+            }
+        });
+    }, 5000);
+}
+
+document.addEventListener("DOMContentLoaded", autoCloseAlerts);
+
+const alertObserver = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+            if (node.nodeType === 1 && node.classList.contains("alert")) {
+                autoCloseAlerts();
+            }
+        });
+    });
+});
+alertObserver.observe(document.body, { childList: true, subtree: true });

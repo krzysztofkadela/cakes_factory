@@ -4,20 +4,23 @@
 * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
 */
 
-// 🟢 Auto-close alerts after 5 seconds
+// Auto-close alerts after 5 seconds with fade-out effect
 document.addEventListener("DOMContentLoaded", function () {
     setTimeout(function () {
         let alerts = document.querySelectorAll(".alert");
         alerts.forEach(alert => {
-            if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
-                let bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
+            alert.classList.add("fade-out"); // Apply fade-out CSS
+            setTimeout(() => {
+                if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
+                    let bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 500); // Delay removal to match fade-out animation
         });
-    }, 5000); 
+    }, 5000);
 });
 
-// 🛒 Add to Cart with AJAX
+// Add to Cart with AJAX
 document.addEventListener("DOMContentLoaded", function () {
     const addToCartForms = document.querySelectorAll(".add-to-cart-form");
 
@@ -59,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// 🏷️ Dynamic Price Update
+// Dynamic Price Update
 document.addEventListener("DOMContentLoaded", function () {
     const sizeDropdown = document.getElementById("size");
     const priceDisplay = document.getElementById("product-price");
@@ -80,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// ✅ Checkout Validation & Submission
+// Checkout Validation & Submission
 document.addEventListener("DOMContentLoaded", function () {
     const payButton = document.getElementById("pay-with-stripe");
     const checkoutForm = document.getElementById("checkout-form");
@@ -98,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// ✅ Function to validate checkout form before submitting
+// Function to validate checkout form before submitting
 function validateCheckoutForm() {
     let isValid = true;
 
@@ -144,7 +147,7 @@ function validateCheckoutForm() {
     return isValid;
 }
 
-// ✅ Displays an error message below the input field
+// Displays an error message below the input field
 function showError(field, message) {
     if (field) {
         const errorElement = document.createElement("div");
@@ -154,3 +157,42 @@ function showError(field, message) {
         field.parentNode.appendChild(errorElement);
     }
 }
+
+
+/* Newsletter signup – AJAX (NEW) */
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("newsletter-form"), box = document.getElementById("newsletter-msg");
+    if (!form || !box) return;
+
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+        const data = new FormData(form);
+        fetch(form.action, {
+            method : "POST",
+            body   : data,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken"     : data.get("csrfmiddlewaretoken")
+            }
+        })
+        .then(r => r.json())
+        .then(j => {
+            const cls = j.success ? "success" : "danger";
+            const txt = j.success || j.error || "⚠️ Something went wrong.";
+            box.innerHTML = `
+              <div class="alert alert-${cls} alert-dismissible fade show" role="alert">
+                ${txt}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>`;
+            if (j.success) form.reset();
+        })
+        .catch(err => {
+            console.error("Newsletter error:", err);
+            box.innerHTML = `
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                ⚠️ Server error. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>`;
+        });
+    });
+});

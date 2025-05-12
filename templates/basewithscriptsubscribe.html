@@ -5,7 +5,6 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- ✅ SEO Meta Tags -->
     <meta name="description"
@@ -13,7 +12,7 @@
     <meta name="keywords" content="cakes, cupcakes, bakery, online cake shop, custom cakes, cake delivery">
     <meta name="author" content="Cake Factory">
     <meta name="robots" content="index, follow">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}">
@@ -26,12 +25,55 @@
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
 
     <!-- Canonical Link -->
-    <link rel="canonical" href="https://cake-factory-65cd55cbb35d.herokuapp.com/">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
 
     <title>{% block title %}Cake Factory{% endblock %}</title>
 
 </head>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const newsletterForm = document.getElementById("newsletter-form");
+        const newsletterMsg = document.getElementById("newsletter-msg");
 
+        if (newsletterForm) {
+            newsletterForm.addEventListener("submit", function(e) {
+                e.preventDefault();  // Prevent normal form submit
+                const formData = new FormData(newsletterForm);
+
+                fetch("{% url 'newsletter_signup' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        newsletterMsg.innerHTML = `<div class="alert alert-success alert-dismissible fade show" role="alert">
+                            ${data.success}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`;
+                        newsletterForm.reset();
+                    } else if (data.error) {
+                        newsletterMsg.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            ${data.error}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error submitting form:", error);
+                    newsletterMsg.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ⚠️ Something went wrong. Please try again.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`;
+                });
+            });
+        }
+    });
+</script>
 <body class="{% if request.resolver_match.url_name == 'home' %}homepage{% endif %}">
     <!-- Glassmorphism Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-navbar">
@@ -127,14 +169,12 @@
                 <div class="col-md-6 mb-3">
                     <h5>Follow Us</h5>
                     <div class="social-icons">
-                        <a href="https://www.facebook.com/profile.php?id=61573954506260" target="_blank"><i
-                                class="bi bi-facebook"></i></a>
-                        <a href="https://twitter.com/yourpage" target="_blank"><i class="bi bi-twitter"></i></a>
-                        <a href="https://www.instagram.com/yourpage" target="_blank"><i class="bi bi-instagram"></i></a>
-                        <a href="https://www.youtube.com/yourchannel" target="_blank"><i class="bi bi-youtube"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61573954506260" target="_blank"
+                            rel="noopener noreferrer">
+                            <i class="bi bi-facebook"></i>
+                        </a>
                     </div>
                 </div>
-
                 <!-- Newsletter Signup -->
                 <div class="col-md-6">
                     <h5>Subscribe to Our Newsletter</h5>
@@ -146,6 +186,7 @@
                             <button class="btn btn-outline-light" type="submit">Subscribe</button>
                         </div>
                     </form>
+                    <div id="newsletter-msg" class="mt-2"></div> <!-- Message container -->
                 </div>
             </div>
 

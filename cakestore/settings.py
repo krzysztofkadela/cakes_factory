@@ -198,6 +198,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 
 # Define locations for Static & Media files
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_LOCATION = "static"
 MEDIAFILES_LOCATION = "media"
 

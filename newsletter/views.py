@@ -1,37 +1,43 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
 from .forms import NewsletterForm
 from .models import NewsletterSubscriber
-
-#newslatter function
 
 def newsletter_signup(request):
     if request.method == "POST":
         form = NewsletterForm(request.POST)
-        
+
         if form.is_valid():
             email = form.cleaned_data["email"]
-            
-            # Check if email is already subscribed
-            if NewsletterSubscriber.objects.filter(email=email).exists():
+
+            # Check if already subscribed
+            subscriber, created = NewsletterSubscriber.objects.get_or_create(email=email)
+            if not created:
+                # Already exists
                 if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                     return JsonResponse({"error": "⚠️ This email is already subscribed!"}, status=400)
-                messages.warning(request, "⚠️ This email is already subscribed!")
+                else:
+                    messages.warning(request, "⚠️ This email is already subscribed!")
             else:
-                form.save()
+                # Successfully subscribed
                 if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                     return JsonResponse({"success": "✅ Thank you for subscribing!"}, status=200)
-                messages.success(request, "✅ Thank you for subscribing!")
+                else:
+                    messages.success(request, "✅ Thank you for subscribing!")
 
-            return redirect("home")  # Redirect after form submission
+            return redirect("home")
 
-        # If form is invalid
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return JsonResponse({"error": form.errors}, status=400)
+        else:
+            # Invalid form (duplicate email, invalid format, etc.)
+            errors = form.errors.get("email", ["⚠️ Invalid email address. Please try again."])
+            error_message = errors[0]  # Get the first error message
 
-        messages.error(request, "⚠️ Invalid email address. Please try again.")
-        return redirect("home")
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"error": error_message}, status=400)
+            else:
+                messages.error(request, error_message)
+                return redirect("home")
 
-    return redirect("home")  # Redirect if accessed without POST
+    # Non-POST request => Redirect home
+    return redirect("home")

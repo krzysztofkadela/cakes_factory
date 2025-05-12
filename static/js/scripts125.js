@@ -4,20 +4,23 @@
 * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-shop-homepage/blob/master/LICENSE)
 */
 
-// 🟢 Auto-close alerts after 5 seconds
+// Auto-close alerts after 5 seconds with fade-out effect
 document.addEventListener("DOMContentLoaded", function () {
     setTimeout(function () {
         let alerts = document.querySelectorAll(".alert");
         alerts.forEach(alert => {
-            if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
-                let bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
+            alert.classList.add("fade-out"); // Apply fade-out CSS
+            setTimeout(() => {
+                if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
+                    let bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 500); // Delay removal to match fade-out animation
         });
-    }, 5000); 
+    }, 5000);
 });
 
-// 🛒 Add to Cart with AJAX
+// Add to Cart with AJAX
 document.addEventListener("DOMContentLoaded", function () {
     const addToCartForms = document.querySelectorAll(".add-to-cart-form");
 
@@ -59,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// 🏷️ Dynamic Price Update
+// Dynamic Price Update
 document.addEventListener("DOMContentLoaded", function () {
     const sizeDropdown = document.getElementById("size");
     const priceDisplay = document.getElementById("product-price");
@@ -68,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const basePrice = parseFloat(priceDisplay.dataset.basePrice);
         const sizeAdjustments = { "Small": 0, "Large": 20, "X-large": 40 };
 
-        function updatePrice() {
+        sizeDropdown.addEventListener("change", function () {
             const selectedSize = sizeDropdown.options[sizeDropdown.selectedIndex].text.trim();
             const extraCost = sizeAdjustments[selectedSize] || 0;
             const newPrice = basePrice + extraCost;
@@ -76,39 +79,29 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!isNaN(newPrice)) {
                 priceDisplay.innerText = `€${newPrice.toFixed(2)}`;
             }
-        }
-
-        sizeDropdown.addEventListener("change", updatePrice);
-        updatePrice(); // ✅ Ensure price updates on page load
+        });
     }
 });
 
-// ✅ Checkout Validation & Submission
+// Checkout Validation & Submission
 document.addEventListener("DOMContentLoaded", function () {
     const payButton = document.getElementById("pay-with-stripe");
     const checkoutForm = document.getElementById("checkout-form");
 
-    if (checkoutForm) {  // ✅ Only run the script if the checkout form exists
-        if (payButton) {
-            payButton.addEventListener("click", function (event) {
-                event.preventDefault(); // Prevent default button behavior
+    if (payButton && checkoutForm) {
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault(); 
 
-                if (validateCheckoutForm()) {
-                    console.log("✅ Checkout form validated! Proceeding to payment.");
-                    checkoutForm.submit(); 
-                } else {
-                    console.error("❌ Checkout form validation failed!");
-                }
-            });
-        } else {
-            console.warn("⚠️ Checkout form found, but pay-with-stripe button is missing.");
-        }
+            if (validateCheckoutForm()) {
+                checkoutForm.submit(); 
+            }
+        });
     } else {
-        console.info("ℹ️ Checkout form not found on this page. Skipping checkout script.");
+        console.error("⚠️ Checkout form or pay button not found!");
     }
 });
 
-// ✅ Function to validate checkout form before submitting
+// Function to validate checkout form before submitting
 function validateCheckoutForm() {
     let isValid = true;
 
@@ -154,7 +147,7 @@ function validateCheckoutForm() {
     return isValid;
 }
 
-// ✅ Displays an error message below the input field
+// Displays an error message below the input field
 function showError(field, message) {
     if (field) {
         const errorElement = document.createElement("div");
@@ -164,3 +157,81 @@ function showError(field, message) {
         field.parentNode.appendChild(errorElement);
     }
 }
+
+
+/* Newsletter signup – AJAX (NEW) */
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("newsletter-form"), box = document.getElementById("newsletter-msg");
+    if (!form || !box) return;
+
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+        const data = new FormData(form);
+        fetch(form.action, {
+            method : "POST",
+            body   : data,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken"     : data.get("csrfmiddlewaretoken")
+            }
+        })
+        .then(r => r.json())
+        .then(j => {
+            const cls = j.success ? "success" : "danger";
+            const txt = j.success || j.error || "⚠️ Something went wrong.";
+            box.innerHTML = `
+              <div class="alert alert-${cls} alert-dismissible fade show" role="alert">
+                ${txt}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>`;
+            if (j.success) form.reset();
+        })
+        .catch(err => {
+            console.error("Newsletter error:", err);
+            box.innerHTML = `
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                ⚠️ Server error. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>`;
+        });
+    });
+});
+
+
+// Auto-close alerts after 5 seconds (page load & dynamic)
+function autoCloseAlerts() {
+    setTimeout(() => {
+        const alerts = document.querySelectorAll(".alert");
+        alerts.forEach(alert => {
+            if (!alert.classList.contains("fading")) {
+                alert.classList.add("fading"); // Prevent re-fading
+                alert.classList.add("fade-out"); // Add fade-out animation
+                setTimeout(() => {
+                    if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
+                        let bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        bsAlert.close();
+                    } else {
+                        alert.remove();
+                    }
+                }, 500); // Match fade-out CSS
+            }
+        });
+    }, 5000); // Delay before fade
+}
+
+// Run once on page load for existing alerts
+document.addEventListener("DOMContentLoaded", autoCloseAlerts);
+
+// Observe dynamic alerts (like newsletter signup feedback)
+const alertObserver = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+            if (node.nodeType === 1 && node.classList.contains("alert")) {
+                autoCloseAlerts();
+            }
+        });
+    });
+});
+
+// Start observing new alerts in the DOM
+alertObserver.observe(document.body, { childList: true, subtree: true });
