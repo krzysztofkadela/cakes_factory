@@ -550,6 +550,47 @@ def retry_payment(request, order_number):
     """
     Allows user to retry a payment for a pending or failed order.
     """
+    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+
+    if order.status == "paid":
+        messages.info(request, "This order is already paid.")
+        return redirect("order_detail", order_number=order.order_number)
+
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    site_url = request.build_absolute_uri("/")[:-1]  # Dynamically get current host
+    print(f"🔎 Dynamic SITE_URL for retry: {site_url}")
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[{
+                "price_data": {
+                    "currency": "eur",
+                    "product_data": {
+                        "name": f"Order {order.order_number}",
+                    },
+                    "unit_amount": int(order.grand_total * 100),  # Ensure cents
+                },
+                "quantity": 1,
+            }],
+            metadata={"order_number": order.order_number},
+            success_url=f"{site_url}{reverse('payment_success')}",
+            cancel_url=f"{site_url}{reverse('order_detail', args=[order.order_number])}",
+        )
+        return redirect(session.url)
+    except stripe.error.StripeError as e:
+        print(f"❌ Stripe error: {e}")
+        messages.error(request, f"Stripe error: {e}")
+        return redirect("order_detail", order_number=order.order_number)
+
+
+@login_required
+def retry_paymentold(request, order_number):
+    """
+    Allows user to retry a payment for a pending or failed order.
+    """
     order = get_object_or_404(
         Order, order_number=order_number, user=request.user)
 

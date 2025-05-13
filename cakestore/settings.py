@@ -47,7 +47,7 @@ STANDARD_DELIVERY_CHARGE = float(os.getenv("STANDARD_DELIVERY_CHARGE", 5.00))
 
 
 # ─── STRIPE ─────────────────────────────────────────────────────────────────
-STRIPE_CURRENCY = "usd"
+STRIPE_CURRENCY = "eur"
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WH_SECRET = os.getenv("STRIPE_WH_SECRET", "")

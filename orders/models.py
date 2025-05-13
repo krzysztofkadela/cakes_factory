@@ -152,7 +152,7 @@ class Order(models.Model):
                 mode="payment",
                 line_items=[{
                     "price_data": {
-                        "currency": "usd",
+                        "currency": "eur",
                         "product_data": {"name": f"Order {self.order_number}"},
                         # Convert to cents
                         "unit_amount": int(self.grand_total * 100),
