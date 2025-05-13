@@ -180,12 +180,14 @@ class OrderItem(models.Model):
     size = models.ForeignKey(
         Size, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
-    price_each = models.DecimalField(max_digits=10, decimal_places=2)
+    price_each = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     @property
     def line_total(self):
-        """Fixed: Ensure order item total calculation is correct."""
-        return self.price_each * self.quantity
+        """Ensure order item total calculation is safe even if price_each is None."""
+        price = self.price_each or 0
+        quantity = self.quantity or 0
+        return price * quantity
 
     def save(self, *args, **kwargs):
         """Ensure price_each is correctly set before saving."""
@@ -193,7 +195,7 @@ class OrderItem(models.Model):
         self.order.update_total()  # Update order total
 
     def delete(self, *args, **kwargs):
-        """Fixed: Update order total on item removal."""
+        """Update order total on item removal."""
         super().delete(*args, **kwargs)
         self.order.update_total()
 
