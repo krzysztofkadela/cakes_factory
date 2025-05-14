@@ -8,7 +8,6 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 
@@ -402,7 +401,7 @@ def checkout_pageold(request):
                 "subtotal": subtotal,
             })
 
-    # Delivery & grand total 
+    # Delivery & grand total
     delivery_charge = Decimal("0.00")
     if total_price < Decimal(settings.FREE_DELIVERY_THRESHOLD):
         delivery_charge = Decimal(settings.STANDARD_DELIVERY_CHARGE)

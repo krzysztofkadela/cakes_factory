@@ -1,4 +1,3 @@
-from django.conf import settings
 from .models import CartItem, Product, Size
 
 
@@ -29,7 +28,6 @@ def cart_context(request):
                 price = float(item.get("price", 0))
 
                 # ✅ Ensure product exists
-                product = Product.objects.get(id=product_id)
 
                 # ✅ Get size adjustment (if any)
                 size_id = item.get("size_id")

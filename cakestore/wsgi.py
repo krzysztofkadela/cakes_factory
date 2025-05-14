@@ -1,7 +1,7 @@
 """
 WSGI config for cakestore project.
 
-It exposes the WSGI callable as 
+It exposes the WSGI callable as
 a module-level variable named ``application``.
 
 For more information on this file, see
