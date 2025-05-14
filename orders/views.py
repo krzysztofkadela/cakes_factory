@@ -524,7 +524,7 @@ def create_checkout_session(request):
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
-            success_url=request.build_absolute_uri(reverse('payment_success')),
+            success_url = request.build_absolute_uri(reverse('payment_success')) + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
             metadata=metadata,
             payment_intent_data={"metadata": metadata},
@@ -538,6 +538,35 @@ def create_checkout_session(request):
 
 
 def payment_success(request):
+    session_id = request.GET.get('session_id')
+    if not session_id:
+        return render(request, "orders/payment_success.html")
+
+    try:
+        # Retrieve Checkout Session from Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        order_number = session.metadata.get("order_number")
+
+        if order_number:
+            order = Order.objects.get(order_number=order_number)
+
+            # If still pending, verify via Stripe and update status
+            if order.status != "paid" and session.payment_status == "paid":
+                order.status = "paid"
+                order.save()
+                print(f"✅ Order {order_number} marked as PAID (via success page fallback).")
+
+                # Clear cart
+                if order.user:
+                    CartItem.objects.filter(user=order.user).delete()
+                else:
+                    if "cart" in request.session:
+                        del request.session["cart"]
+                        request.session.modified = True
+
+    except Exception as e:
+        print(f"⚠️ Error verifying payment on success page: {e}")
+
     return render(request, "orders/payment_success.html")
 
 
@@ -576,7 +605,7 @@ def retry_payment(request, order_number):
                 "quantity": 1,
             }],
             metadata={"order_number": order.order_number},
-            success_url=f"{site_url}{reverse('payment_success')}",
+            success_url = f"{site_url}{reverse('payment_success')}?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{site_url}{reverse('order_detail', args=[order.order_number])}",
         )
         return redirect(session.url)
@@ -586,43 +615,6 @@ def retry_payment(request, order_number):
         return redirect("order_detail", order_number=order.order_number)
 
 
-@login_required
-def retry_paymentold(request, order_number):
-    """
-    Allows user to retry a payment for a pending or failed order.
-    """
-    order = get_object_or_404(
-        Order, order_number=order_number, user=request.user)
-
-    if order.status == "paid":
-        messages.info(request, "This order is already paid.")
-        return redirect("order_detail", order_number=order.order_number)
-
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            mode="payment",
-            line_items=[{
-                "price_data": {
-                    "currency": "eur",
-                    "product_data": {
-                        "name": f"Order {order.order_number}",
-                    },
-                    "unit_amount": int(order.grand_total * 100),
-                },
-                "quantity": 1,
-            }],
-            metadata={"order_number": order.order_number},
-            success_url=f"{settings.SITE_URL}{reverse('payment_success')}",
-            cancel_url=f"{settings.SITE_URL}{reverse(
-                'order_detail', args=[order.order_number])}",
-        )
-        return redirect(session.url)
-    except stripe.error.StripeError as e:
-        messages.error(request, f"Stripe error: {str(e)}")
-        return redirect("order_detail", order_number=order.order_number)
 
 
 @csrf_exempt
