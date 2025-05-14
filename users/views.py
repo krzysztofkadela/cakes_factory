@@ -57,16 +57,14 @@ def toggle_user_status(request, user_id):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def manage_users(request):
-    users = CustomUser.objects.all()
+    users = User.objects.all()
     return render(request, "users/manage_users.html", {"users": users})
-
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def manage_orders(request):
     orders = Order.objects.all().order_by("-created_at")
     return render(request, "users/manage_orders.html", {"orders": orders})
-
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -76,6 +74,7 @@ def manage_products(request):
         request, "users/manage_products.html", {"products": products})
 
 
+@login_required
 @user_passes_test(lambda u: u.is_superuser)  # Restrict access to admins
 def manage_subscriptions(request):
     """View all newsletter subscribers."""
@@ -105,12 +104,6 @@ def delete_subscription(request, subscriber_id):
         request, f"Subscriber {subscriber.email} deleted successfully.")
     return redirect("manage_subscriptions")
 
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def manage_users(request):
-    users = User.objects.all()
-    return render(request, "users/manage_users.html", {"users": users})
 
 
 @login_required
