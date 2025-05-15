@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0001_initial'),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='billing_country',
+            model_name="order",
+            name="billing_country",
             field=models.CharField(blank=True, max_length=40, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='billing_county',
+            model_name="order",
+            name="billing_county",
             field=models.CharField(blank=True, max_length=80, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='billing_full_name',
+            model_name="order",
+            name="billing_full_name",
             field=models.CharField(blank=True, max_length=50, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='billing_phone_number',
+            model_name="order",
+            name="billing_phone_number",
             field=models.CharField(blank=True, max_length=20, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='billing_postcode',
+            model_name="order",
+            name="billing_postcode",
             field=models.CharField(blank=True, max_length=20, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='billing_street_address1',
+            model_name="order",
+            name="billing_street_address1",
             field=models.CharField(blank=True, max_length=80, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='billing_street_address2',
+            model_name="order",
+            name="billing_street_address2",
             field=models.CharField(blank=True, max_length=80, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='billing_town_or_city',
+            model_name="order",
+            name="billing_town_or_city",
             field=models.CharField(blank=True, max_length=40, null=True),
         ),
     ]

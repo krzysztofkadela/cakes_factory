@@ -8,15 +8,15 @@ from .forms import ProductForm
 
 class ProductListViewold(ListView):
     model = Product
-    template_name = 'products/product_list.html'
-    context_object_name = 'products'
+    template_name = "products/product_list.html"
+    context_object_name = "products"
 
     def get_queryset(self):
         """Override to optionally filter by category
         slug passed as ?category=slug.
         """
         queryset = super().get_queryset()
-        category_slug = self.request.GET.get('category')
+        category_slug = self.request.GET.get("category")
         if category_slug:
             # Filter by category__slug, not category__id
             queryset = queryset.filter(category__slug=category_slug)
@@ -25,23 +25,22 @@ class ProductListViewold(ListView):
 
 class ProductListView(ListView):
     model = Product
-    template_name = 'products/product_list.html'
-    context_object_name = 'products'
+    template_name = "products/product_list.html"
+    context_object_name = "products"
 
     def get_queryset(self):
         queryset = super().get_queryset()
 
         # Get filters from URL parameters
-        query = self.request.GET.get('q', '').strip()
-        price_min = self.request.GET.get('price_min')
-        price_max = self.request.GET.get('price_max')
-        category_slug = self.request.GET.get('category', '').strip()
-        allergen_free = self.request.GET.get('allergen_free')
+        query = self.request.GET.get("q", "").strip()
+        price_min = self.request.GET.get("price_min")
+        price_max = self.request.GET.get("price_max")
+        category_slug = self.request.GET.get("category", "").strip()
+        allergen_free = self.request.GET.get("allergen_free")
 
         # If search button is clicked but input is empty, show error message
-        if 'q' in self.request.GET and not query:
-            messages.error(
-                self.request, "Please enter a search term.")
+        if "q" in self.request.GET and not query:
+            messages.error(self.request, "Please enter a search term.")
 
         # Apply search filter
         if query:
@@ -50,22 +49,19 @@ class ProductListView(ListView):
         # Apply price filters
         if price_min:
             try:
-                queryset = queryset.filter(
-                    price__gte=float(price_min))
+                queryset = queryset.filter(price__gte=float(price_min))
             except ValueError:
                 pass  # Ignore invalid values
 
         if price_max:
             try:
-                queryset = queryset.filter(
-                    price__lte=float(price_max))
+                queryset = queryset.filter(price__lte=float(price_max))
             except ValueError:
                 pass  # Ignore invalid values
 
         # Apply category filter
         if category_slug:
-            category = Category.objects.filter(
-                slug=category_slug).first()
+            category = Category.objects.filter(slug=category_slug).first()
             if category:
                 queryset = queryset.filter(category=category)
 
@@ -80,13 +76,13 @@ class ProductListView(ListView):
         in the context for the dropdown menu.
         """
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
+        context["categories"] = Category.objects.all()
         return context
 
 
 class ProductDetailView(DetailView):
     model = Product
-    template_name = 'products/product_detail.html'
+    template_name = "products/product_detail.html"
 
 
 def filter_products(request):
@@ -95,11 +91,11 @@ def filter_products(request):
     price range, category slug, allergen-free.
     Renders the same product_list.html but with a filtered queryset.
     """
-    query = request.GET.get('q')
-    price_min = request.GET.get('price_min')
-    price_max = request.GET.get('price_max')
-    category_slug = request.GET.get('category')
-    allergen_free = request.GET.get('allergen_free')
+    query = request.GET.get("q")
+    price_min = request.GET.get("price_min")
+    price_max = request.GET.get("price_max")
+    category_slug = request.GET.get("category")
+    allergen_free = request.GET.get("allergen_free")
 
     products = Product.objects.all()
 
@@ -122,7 +118,9 @@ def filter_products(request):
         products = products.exclude(allergen_info__icontains="nuts")
 
     return render(
-        request, 'products/product_list.html', {'products': products})
+        request, "products/product_list.html", {"products": products}
+    )
+
 
 # Admin manage product functionality views:
 
@@ -165,8 +163,10 @@ def edit_product(request, product_id):
         form = ProductForm(instance=product)
 
     return render(
-        request, "products/edit_product.html",
-        {"form": form, "product": product})
+        request,
+        "products/edit_product.html",
+        {"form": form, "product": product},
+    )
 
 
 @user_passes_test(is_superuser)
@@ -179,4 +179,5 @@ def delete_product(request, product_id):
         return redirect("manage_products")
 
     return render(
-        request, "products/delete_product.html", {"product": product})
+        request, "products/delete_product.html", {"product": product}
+    )

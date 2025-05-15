@@ -30,7 +30,7 @@ def cart_add(request, product_id):
             user=request.user,
             product=product,
             size=size,
-            defaults={"quantity": quantity, "customization": customization}
+            defaults={"quantity": quantity, "customization": customization},
         )
         if not created:
             cart_item.quantity += quantity
@@ -59,15 +59,17 @@ def cart_add(request, product_id):
         request.session["cart"] = cart
         request.session.modified = True
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         cart_total_price = sum(
             float(item["price"]) * item["quantity"]
             for item in request.session.get("cart", {}).values()
         )
-        return JsonResponse({
-            "cart_items": len(request.session.get("cart", {})),
-            "cart_total_price": float(cart_total_price),
-        })
+        return JsonResponse(
+            {
+                "cart_items": len(request.session.get("cart", {})),
+                "cart_total_price": float(cart_total_price),
+            }
+        )
 
     messages.success(request, f"{quantity} x {product.name} added to cart!")
     return redirect("cart_view")
@@ -81,24 +83,35 @@ def cart_view(request):
         for item in db_cart_items:
             subtotal = item.adjusted_price * item.quantity
             total_price += subtotal
-            cart_items.append({
-                "product_id": item.product.id,
-                "size_id": item.size.id if item.size else None,
-                "name": item.product.name,
-                "image": item.product.image.url
-                if item.product.image else None,
-                "price": item.adjusted_price,
-                "quantity": item.quantity,
-                "size": item.size.name if item.size else "N/A",
-                "customization": item.customization or "",
-                "subtotal": subtotal,
-                "update_url": reverse(
-                    "cart_update", args=[item.product.id,
-                                         item.size.id if item.size else 0]),
-                "remove_url": reverse(
-                    "cart_remove", args=[item.product.id,
-                                         item.size.id if item.size else 0]),
-            })
+            cart_items.append(
+                {
+                    "product_id": item.product.id,
+                    "size_id": item.size.id if item.size else None,
+                    "name": item.product.name,
+                    "image": (
+                        item.product.image.url if item.product.image else None
+                    ),
+                    "price": item.adjusted_price,
+                    "quantity": item.quantity,
+                    "size": item.size.name if item.size else "N/A",
+                    "customization": item.customization or "",
+                    "subtotal": subtotal,
+                    "update_url": reverse(
+                        "cart_update",
+                        args=[
+                            item.product.id,
+                            item.size.id if item.size else 0,
+                        ],
+                    ),
+                    "remove_url": reverse(
+                        "cart_remove",
+                        args=[
+                            item.product.id,
+                            item.size.id if item.size else 0,
+                        ],
+                    ),
+                }
+            )
     else:
         session_cart = request.session.get("cart", {})
         for key, item in session_cart.items():
@@ -113,32 +126,39 @@ def cart_view(request):
                 continue
             subtotal = float(item["price"]) * item["quantity"]
             total_price += subtotal
-            cart_items.append({
-                "product_id": product.id,
-                "size_id": size.id if size else None,
-                "name": product.name,
-                "image": product.image.url if product.image else None,
-                "price": float(item["price"]),
-                "quantity": item["quantity"],
-                "size": size.name if size else "N/A",
-                "customization": item.get("customization", ""),
-                "subtotal": subtotal,
-                "update_url": reverse(
-                    "cart_update", args=[product.id, size.id if size else 0]),
-                "remove_url": reverse(
-                    "cart_remove", args=[product.id, size.id if size else 0]),
-            })
+            cart_items.append(
+                {
+                    "product_id": product.id,
+                    "size_id": size.id if size else None,
+                    "name": product.name,
+                    "image": product.image.url if product.image else None,
+                    "price": float(item["price"]),
+                    "quantity": item["quantity"],
+                    "size": size.name if size else "N/A",
+                    "customization": item.get("customization", ""),
+                    "subtotal": subtotal,
+                    "update_url": reverse(
+                        "cart_update",
+                        args=[product.id, size.id if size else 0],
+                    ),
+                    "remove_url": reverse(
+                        "cart_remove",
+                        args=[product.id, size.id if size else 0],
+                    ),
+                }
+            )
 
-    return render(request, "orders/cart.html", {"cart": cart_items,
-                                                "total_price": total_price})
+    return render(
+        request,
+        "orders/cart.html",
+        {"cart": cart_items, "total_price": total_price},
+    )
 
 
 def cart_remove(request, product_id, size_id=0):
     if request.user.is_authenticated:
         cart_item = CartItem.objects.filter(
-            user=request.user,
-            product_id=product_id,
-            size_id=size_id
+            user=request.user, product_id=product_id, size_id=size_id
         ).first()
 
         if cart_item:
@@ -194,8 +214,9 @@ def custom_order(request, product_id):
             return redirect("cart_view")
     else:
         form = CustomOrderForm()
-    return render(request, "orders/custom_order.html",
-                  {"form": form, "product": product})
+    return render(
+        request, "orders/custom_order.html", {"form": form, "product": product}
+    )
 
 
 def cart_update(request, product_id, size_id=0):
@@ -211,7 +232,7 @@ def cart_update(request, product_id, size_id=0):
         cart_item = CartItem.objects.filter(
             user=request.user,
             product_id=product_id,
-            size_id=size_id if size_id else None
+            size_id=size_id if size_id else None,
         ).first()
 
         if cart_item:
@@ -227,8 +248,7 @@ def cart_update(request, product_id, size_id=0):
     else:
         cart = request.session.get("cart", {})
         cart_item_key = (
-            f"{product_id}_{size_id}" if int(size_id) > 0
-            else str(product_id)
+            f"{product_id}_{size_id}" if int(size_id) > 0 else str(product_id)
         )
 
         if cart_item_key in cart:
@@ -258,9 +278,13 @@ def merge_cart_on_login(sender, request, user, **kwargs):
         product = get_object_or_404(Product, id=product_id)
         size = get_object_or_404(Size, id=size_id) if size_id else None
         cart_item, created = CartItem.objects.get_or_create(
-            user=user, product=product, size=size,
-            defaults={"quantity": item["quantity"],
-                      "customization": item.get("customization", "")}
+            user=user,
+            product=product,
+            size=size,
+            defaults={
+                "quantity": item["quantity"],
+                "customization": item.get("customization", ""),
+            },
         )
         if not created:
             cart_item.quantity += item["quantity"]
@@ -272,6 +296,7 @@ def merge_cart_on_login(sender, request, user, **kwargs):
 def clear_cart_on_logout(sender, request, user, **kwargs):
     request.session["cart"] = {}
     request.session.modified = True
+
 
 def checkout_page(request):
     """
@@ -295,13 +320,15 @@ def checkout_page(request):
         for ci in db_cart_items:
             subtotal = ci.adjusted_price * ci.quantity
             total_price += subtotal
-            cart_items.append({
-                "product": ci.product,
-                "size": ci.size,
-                "quantity": ci.quantity,
-                "price": ci.adjusted_price,
-                "subtotal": subtotal,
-            })
+            cart_items.append(
+                {
+                    "product": ci.product,
+                    "size": ci.size,
+                    "quantity": ci.quantity,
+                    "price": ci.adjusted_price,
+                    "subtotal": subtotal,
+                }
+            )
     else:
         session_cart = request.session.get("cart", {})
         if not session_cart:
@@ -321,17 +348,23 @@ def checkout_page(request):
 
             subtotal = Decimal(item["price"]) * item["quantity"]
             total_price += subtotal
-            cart_items.append({
-                "product": product,
-                "size": size,
-                "quantity": item["quantity"],
-                "price": Decimal(item["price"]),
-                "subtotal": subtotal,
-            })
+            cart_items.append(
+                {
+                    "product": product,
+                    "size": size,
+                    "quantity": item["quantity"],
+                    "price": Decimal(item["price"]),
+                    "subtotal": subtotal,
+                }
+            )
 
     # Delivery & grand total calculation
-    free_delivery_threshold = Decimal(getattr(settings, "FREE_DELIVERY_THRESHOLD", "50.00"))
-    standard_delivery_charge = Decimal(getattr(settings, "STANDARD_DELIVERY_CHARGE", "5.00"))
+    free_delivery_threshold = Decimal(
+        getattr(settings, "FREE_DELIVERY_THRESHOLD", "50.00")
+    )
+    standard_delivery_charge = Decimal(
+        getattr(settings, "STANDARD_DELIVERY_CHARGE", "5.00")
+    )
 
     delivery_charge = Decimal("0.00")
     if total_price < free_delivery_threshold:
@@ -339,13 +372,18 @@ def checkout_page(request):
 
     grand_total = total_price + delivery_charge
 
-    return render(request, "orders/checkout.html", {
-        "cart_items": cart_items,
-        "total_price": total_price,
-        "delivery_charge": delivery_charge,
-        "grand_total": grand_total,
-        "free_delivery_threshold": free_delivery_threshold,
-    })
+    return render(
+        request,
+        "orders/checkout.html",
+        {
+            "cart_items": cart_items,
+            "total_price": total_price,
+            "delivery_charge": delivery_charge,
+            "grand_total": grand_total,
+            "free_delivery_threshold": free_delivery_threshold,
+        },
+    )
+
 
 def checkout_pageold(request):
     """
@@ -367,13 +405,15 @@ def checkout_pageold(request):
         for ci in db_cart_items:
             subtotal = ci.adjusted_price * ci.quantity
             total_price += subtotal
-            cart_items.append({
-                "product": ci.product,
-                "size": ci.size,
-                "quantity": ci.quantity,
-                "price": ci.adjusted_price,
-                "subtotal": subtotal,
-            })
+            cart_items.append(
+                {
+                    "product": ci.product,
+                    "size": ci.size,
+                    "quantity": ci.quantity,
+                    "price": ci.adjusted_price,
+                    "subtotal": subtotal,
+                }
+            )
     else:
         session_cart = request.session.get("cart", {})
         if not session_cart:
@@ -393,13 +433,15 @@ def checkout_pageold(request):
 
             subtotal = Decimal(item["price"]) * item["quantity"]
             total_price += subtotal
-            cart_items.append({
-                "product": product,
-                "size": size,
-                "quantity": item["quantity"],
-                "price": Decimal(item["price"]),
-                "subtotal": subtotal,
-            })
+            cart_items.append(
+                {
+                    "product": product,
+                    "size": size,
+                    "quantity": item["quantity"],
+                    "price": Decimal(item["price"]),
+                    "subtotal": subtotal,
+                }
+            )
 
     # Delivery & grand total
     delivery_charge = Decimal("0.00")
@@ -409,12 +451,16 @@ def checkout_pageold(request):
 
     # We do NOT create an Order here.
     # We only render checkout.html with cart_items.
-    return render(request, "orders/checkout.html", {
-        "cart_items": cart_items,
-        "total_price": total_price,
-        "delivery_charge": delivery_charge,
-        "grand_total": grand_total,
-    })
+    return render(
+        request,
+        "orders/checkout.html",
+        {
+            "cart_items": cart_items,
+            "total_price": total_price,
+            "delivery_charge": delivery_charge,
+            "grand_total": grand_total,
+        },
+    )
 
 
 # create checkout session
@@ -431,9 +477,12 @@ def create_checkout_session(request):
     form = OrderForm(request.POST)
     if not form.is_valid():
         return JsonResponse(
-            {"error": "Invalid shipping/billing details.",
-             "form_errors": form.errors},
-            status=400)
+            {
+                "error": "Invalid shipping/billing details.",
+                "form_errors": form.errors,
+            },
+            status=400,
+        )
 
     new_order = form.save(commit=False)
     if request.user.is_authenticated:
@@ -471,8 +520,8 @@ def create_checkout_session(request):
         session_cart = request.session.get("cart", {})
         if not session_cart:
             return JsonResponse(
-                {"error": "Your cart is empty. Cannot proceed."},
-                status=400)
+                {"error": "Your cart is empty. Cannot proceed."}, status=400
+            )
 
         for key, item in session_cart.items():
             product_id, size_id = key.split("_") if "_" in key else (key, None)
@@ -480,17 +529,19 @@ def create_checkout_session(request):
             size = Size.objects.filter(id=size_id).first() if size_id else None
             if not product:
                 continue
-            cart_items.append({
-                "product": product,
-                "size": size,
-                "quantity": item.get("quantity", 1),
-                "price": Decimal(item.get("price", 0))
-            })
+            cart_items.append(
+                {
+                    "product": product,
+                    "size": size,
+                    "quantity": item.get("quantity", 1),
+                    "price": Decimal(item.get("price", 0)),
+                }
+            )
 
     if not cart_items:
         return JsonResponse(
-            {"error": "Your cart is empty. Cannot proceed."},
-            status=400)
+            {"error": "Your cart is empty. Cannot proceed."}, status=400
+        )
 
     line_items = []
     for item in cart_items:
@@ -501,30 +552,37 @@ def create_checkout_session(request):
         size = item.size if is_cart_item else item.get("size")
 
         OrderItem.objects.create(
-            order=new_order, product=product, size=size,
-            quantity=quantity, price_each=price)
+            order=new_order,
+            product=product,
+            size=size,
+            quantity=quantity,
+            price_each=price,
+        )
 
-        line_items.append({
-            'price_data': {
-                'currency': 'eur',
-                'product_data': {'name': product.name},
-                'unit_amount': int(price * 100),
-            },
-            'quantity': quantity,
-        })
+        line_items.append(
+            {
+                "price_data": {
+                    "currency": "eur",
+                    "product_data": {"name": product.name},
+                    "unit_amount": int(price * 100),
+                },
+                "quantity": quantity,
+            }
+        )
 
     metadata = {
         "order_number": str(new_order.order_number),
-        "customer_email": new_order.email or "unknown@example.com"
+        "customer_email": new_order.email or "unknown@example.com",
     }
 
     try:
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=["card"],
             line_items=line_items,
-            mode='payment',
-            success_url = request.build_absolute_uri(reverse('payment_success')) + "?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=request.build_absolute_uri(reverse('payment_cancel')),
+            mode="payment",
+            success_url=request.build_absolute_uri(reverse("payment_success"))
+            + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=request.build_absolute_uri(reverse("payment_cancel")),
             metadata=metadata,
             payment_intent_data={"metadata": metadata},
         )
@@ -532,12 +590,12 @@ def create_checkout_session(request):
     except stripe.error.StripeError as e:
         return JsonResponse(
             {"error": "Problem creating Stripe session.", "details": str(e)},
-            status=500
+            status=500,
         )
 
 
 def payment_success(request):
-    session_id = request.GET.get('session_id')
+    session_id = request.GET.get("session_id")
     if not session_id:
         return render(request, "orders/payment_success.html")
 
@@ -553,7 +611,9 @@ def payment_success(request):
             if order.status != "paid" and session.payment_status == "paid":
                 order.status = "paid"
                 order.save()
-                print(f"✅ Order {order_number} marked as PAID (via success page fallback).")
+                print(
+                    f"✅ Order {order_number} marked as PAID (via success page fallback)."
+                )
 
                 # Clear cart
                 if order.user:
@@ -578,7 +638,9 @@ def retry_payment(request, order_number):
     """
     Allows user to retry a payment for a pending or failed order.
     """
-    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+    order = get_object_or_404(
+        Order, order_number=order_number, user=request.user
+    )
 
     if order.status == "paid":
         messages.info(request, "This order is already paid.")
@@ -586,25 +648,31 @@ def retry_payment(request, order_number):
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    site_url = request.build_absolute_uri("/")[:-1]  # Dynamically get current host
+    site_url = request.build_absolute_uri("/")[
+        :-1
+    ]  # Dynamically get current host
     print(f"🔎 Dynamic SITE_URL for retry: {site_url}")
 
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             mode="payment",
-            line_items=[{
-                "price_data": {
-                    "currency": "eur",
-                    "product_data": {
-                        "name": f"Order {order.order_number}",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "eur",
+                        "product_data": {
+                            "name": f"Order {order.order_number}",
+                        },
+                        "unit_amount": int(
+                            order.grand_total * 100
+                        ),  # Ensure cents
                     },
-                    "unit_amount": int(order.grand_total * 100),  # Ensure cents
-                },
-                "quantity": 1,
-            }],
+                    "quantity": 1,
+                }
+            ],
             metadata={"order_number": order.order_number},
-            success_url = f"{site_url}{reverse('payment_success')}?session_id={{CHECKOUT_SESSION_ID}}",
+            success_url=f"{site_url}{reverse('payment_success')}?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{site_url}{reverse('order_detail', args=[order.order_number])}",
         )
         return redirect(session.url)
@@ -612,8 +680,6 @@ def retry_payment(request, order_number):
         print(f"❌ Stripe error: {e}")
         messages.error(request, f"Stripe error: {e}")
         return redirect("order_detail", order_number=order.order_number)
-
-
 
 
 @csrf_exempt
@@ -624,11 +690,13 @@ def stripe_webhook(request):
     webhook_secret = settings.STRIPE_WH_SECRET
 
     from .webhook_handler import StripeWH_Handler
+
     handler = StripeWH_Handler(request)
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, webhook_secret)
+            payload, sig_header, webhook_secret
+        )
     except ValueError:
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError:
@@ -636,15 +704,11 @@ def stripe_webhook(request):
 
     # Map event types to handler methods
     event_map = {
-        "checkout.session.completed":
-        handler.handle_checkout_session_completed,
-        "payment_intent.succeeded":
-            handler.handle_payment_intent_succeeded,
-        "payment_intent.payment_failed":
-            handler.handle_payment_intent_payment_failed,
+        "checkout.session.completed": handler.handle_checkout_session_completed,
+        "payment_intent.succeeded": handler.handle_payment_intent_succeeded,
+        "payment_intent.payment_failed": handler.handle_payment_intent_payment_failed,
     }
-    event_handler = event_map.get(event["type"],
-                                  handler.handle_event)
+    event_handler = event_map.get(event["type"], handler.handle_event)
     response = event_handler(event)
     return response
 
@@ -656,7 +720,8 @@ def order_detail(request, order_number):
     Display details of a specific order belonging to the logged-in user.
     """
     order = get_object_or_404(
-        Order, order_number=order_number, user=request.user)
+        Order, order_number=order_number, user=request.user
+    )
     # For security, ensure the order belongs to the current user
     return render(request, "orders/order_detail.html", {"order": order})
 
@@ -674,12 +739,19 @@ def manage_orders(request):
 def update_order_status(request, order_number, status):
     """Allows Admins to Update Order Status."""
     order = get_object_or_404(Order, order_number=order_number)
-    if status in ["pending",
-                  "paid", "shipped", "delivered", "cancelled", "failed"]:
+    if status in [
+        "pending",
+        "paid",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "failed",
+    ]:
         order.status = status
         order.save()
         messages.success(
-            request, f"Order {order.order_number} marked as {status}.")
+            request, f"Order {order.order_number} marked as {status}."
+        )
     else:
         messages.error(request, "Invalid order status.")
 

@@ -10,9 +10,13 @@ def get_site_namespace():
     domain = getattr(settings, "SITEMAP_DOMAIN", None)
     protocol = getattr(settings, "SITEMAP_PROTOCOL", "https")
 
-    # Fallback to SITE_URL if domain is missing
     if not domain:
-        domain = getattr(settings, "SITE_URL", "example.com").replace("https://", "").replace("http://", "").rstrip("/")
+        domain = (
+            getattr(settings, "SITE_URL", "example.com")
+            .replace("https://", "")
+            .replace("http://", "")
+            .rstrip("/")
+        )
 
     return SimpleNamespace(domain=domain, name="Cake Factory"), protocol
 

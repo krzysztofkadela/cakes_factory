@@ -13,8 +13,8 @@ class StripeWH_Handler:
         """Default handler for unhandled events."""
         print(f"⚠️ Unhandled webhook received: {event['type']}")
         return HttpResponse(
-            content=f"Unhandled event type: {event['type']}",
-                    status=200)
+            content=f"Unhandled event type: {event['type']}", status=200
+        )
 
     def handle_checkout_session_completed(self, event):
         """
@@ -28,7 +28,8 @@ class StripeWH_Handler:
         if not order_number:
             print("❌ No order_number found in session metadata!")
             return HttpResponse(
-                "No order_number in webhook metadata.", status=400)
+                "No order_number in webhook metadata.", status=400
+            )
 
         # Retrieve the matching order
         try:
@@ -40,8 +41,7 @@ class StripeWH_Handler:
         # Mark order as paid
         order.status = "paid"
         order.save()
-        print(
-            f"✅ Order {order_number} marked as PAID")
+        print(f"✅ Order {order_number} marked as PAID")
 
         # Clear cart (DB-based if user is authenticated; session cart if guest)
         if order.user:
@@ -68,8 +68,9 @@ class StripeWH_Handler:
             order.user.save()
             print("User shipping address updated from Stripe Checkout.")
 
-        return HttpResponse(f"Order {order_number} marked as paid.",
-                            status=200)
+        return HttpResponse(
+            f"Order {order_number} marked as paid.", status=200
+        )
 
     def handle_payment_intent_succeeded(self, event):
         """
@@ -84,8 +85,9 @@ class StripeWH_Handler:
         order_number = intent.get("metadata", {}).get("order_number")
         if not order_number:
             print("No order_number found in metadata.")
-            return HttpResponse("No order_number in webhook metadata.",
-                                status=400)
+            return HttpResponse(
+                "No order_number in webhook metadata.", status=400
+            )
 
         try:
             order = Order.objects.get(order_number=order_number)
@@ -106,8 +108,9 @@ class StripeWH_Handler:
                 del self.request.session["cart"]
                 self.request.session.modified = True
 
-        return HttpResponse(f"Order {order_number} marked as paid.",
-                            status=200)
+        return HttpResponse(
+            f"Order {order_number} marked as paid.", status=200
+        )
 
     def handle_payment_intent_payment_failed(self, event):
         """Handle failed payment_intent events."""
@@ -131,5 +134,6 @@ class StripeWH_Handler:
         order.save()
         print(f"Order {order_number} remains pending due to failed payment.")
 
-        return HttpResponse(f"Payment failed for Order {order_number}.",
-                            status=200)
+        return HttpResponse(
+            f"Payment failed for Order {order_number}.", status=200
+        )

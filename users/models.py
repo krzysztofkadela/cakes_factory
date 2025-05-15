@@ -12,7 +12,8 @@ class CustomUser(AbstractUser):
 
     # Shipping Address
     shipping_full_name = models.CharField(
-        max_length=100, blank=True, null=True)
+        max_length=100, blank=True, null=True
+    )
     shipping_phone = models.CharField(max_length=20, blank=True, null=True)
     shipping_street_address1 = models.CharField(
         max_length=255, blank=True, null=True

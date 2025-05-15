@@ -10,28 +10,22 @@ import dj_database_url
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
 
-# ─── Load .env ────────────────────────────────────────────────────────────────
+# ─── Load .env ─────────────────────────────────────────────
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─── SITE & SITEMAP CONFIG ──────────────────────────────────────────────────────
-# Full base URL of your site (no trailing slash)
+# ─── SITE & SITEMAP CONFIG ───────────────────────────────
 SITE_URL = os.getenv("SITE_URL", "http://localhost:8000").rstrip("/")
 
-# Which sites.Site entry to use
 SITE_ID = int(os.getenv("SITE_ID", 1))
 
-# Protocol for sitemap URLs
 SITEMAP_PROTOCOL = os.getenv("SITEMAP_PROTOCOL", "https")
 
-# Domain for sitemap URLs (no scheme)
 SITEMAP_DOMAIN = os.getenv(
-    "SITEMAP_DOMAIN",
-    SITE_URL.replace("https://", "").replace("http://", "")
+    "SITEMAP_DOMAIN", SITE_URL.replace("https://", "").replace("http://", "")
 )
 
-
-# ─── SECURITY ───────────────────────────────────────────────────────────────
+# ─── SECURITY ─────────────────────────────────────────────
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 DEBUG = os.getenv("DEVELOPMENT", "False") == "True"
 ALLOWED_HOSTS = [
@@ -40,22 +34,18 @@ ALLOWED_HOSTS = [
     "cake-factory-65cd55cbb35d.herokuapp.com",
 ]
 
-
-# Delivery Fee Settings
 FREE_DELIVERY_THRESHOLD = float(os.getenv("FREE_DELIVERY_THRESHOLD", 50.00))
 STANDARD_DELIVERY_CHARGE = float(os.getenv("STANDARD_DELIVERY_CHARGE", 5.00))
 
-
-# ─── STRIPE ─────────────────────────────────────────────────────────────────
+# ─── STRIPE ───────────────────────────────────────────────
 STRIPE_CURRENCY = "eur"
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WH_SECRET = os.getenv("STRIPE_WH_SECRET", "")
 
-# ─── EMAIL ──────────────────────────────────────────────────────────────────
+# ─── EMAIL ────────────────────────────────────────────────
 EMAIL_BACKEND = os.getenv(
-    "EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend"
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
@@ -63,13 +53,12 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv(
-    "DEFAULT_FROM_EMAIL",
-    "no-reply@cakefactory.com"
+    "DEFAULT_FROM_EMAIL", "no-reply@cakefactory.com"
 )
 
-# ─── INSTALLED APPS & MIDDLEWARE ─────────────────────────────────────────────
+# ─── INSTALLED APPS ───────────────────────────────────────
 INSTALLED_APPS = [
-    # Django
+    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -78,7 +67,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "django.contrib.sitemaps",
-
     # Third-party
     "django_countries",
     "crispy_forms",
@@ -87,8 +75,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-
-    # Your apps
+    # Local apps
     "products",
     "orders",
     "users",
@@ -132,7 +119,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "cakestore.wsgi.application"
 
-# ─── DATABASE ────────────────────────────────────────────────────────────────
+# ─── DATABASE ────────────────────────────────────────────
 if os.getenv("DATABASE_URL"):
     DATABASES = {
         "default": dj_database_url.config(
@@ -149,13 +136,12 @@ else:
         }
     }
 
-# ─── AUTHENTICATION ─────────────────────────────────────────────────────────
+# ─── AUTHENTICATION ─────────────────────────────────────
 AUTH_USER_MODEL = "users.CustomUser"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
-
 
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
@@ -163,29 +149,45 @@ LOGOUT_REDIRECT_URL = "/"
 
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "mandatory")
+ACCOUNT_EMAIL_VERIFICATION = os.getenv(
+    "ACCOUNT_EMAIL_VERIFICATION", "mandatory"
+)
 ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = True
 ACCOUNT_USERNAME_MIN_LENGTH = 4
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[My Cake Store] "
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = os.getenv("ACCOUNT_DEFAULT_HTTP_PROTOCOL", "https")
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = os.getenv(
+    "ACCOUNT_DEFAULT_HTTP_PROTOCOL", "https"
+)
 
-# ─── PASSWORD VALIDATORS ────────────────────────────────────────────────────
+# ─── PASSWORD VALIDATORS ─────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "UserAttributeSimilarityValidator"
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "MinimumLengthValidator"
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "CommonPasswordValidator"
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "NumericPasswordValidator"
+    },
 ]
 
-# ─── INTERNATIONALIZATION ───────────────────────────────────────────────────
+# ─── INTERNATIONALIZATION ────────────────────────────────
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# AWS S3 Storage Configuration
+# ─── AWS S3 STORAGE ─────────────────────────────────────
 AWS_STORAGE_BUCKET_NAME = "cake-factory-65cd55cbb35d"
 AWS_S3_REGION_NAME = "eu-west-1"
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -197,29 +199,27 @@ AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=94608000",
 }
 
-# Define locations for Static & Media files
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_LOCATION = "static"
 MEDIAFILES_LOCATION = "media"
 
-# Use Custom Storage Classes
 STATICFILES_STORAGE = "custom_storages.StaticStorage"
 DEFAULT_FILE_STORAGE = "custom_storages.MediaStorage"
 
-# Set Static and Media URLs
 STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/"
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/"
 
-# For Local Development, use normal filesystem
 if os.getenv("DEVELOPMENT") == "True":
-    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+    STATICFILES_STORAGE = (
+        "django.contrib.staticfiles.storage.StaticFilesStorage"
+    )
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
     STATIC_URL = "/static/"
     STATICFILES_DIRS = [BASE_DIR / "static"]
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 
-# ─── MESSAGES ───────────────────────────────────────────────────────────────
+# ─── MESSAGES ───────────────────────────────────────────
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 MESSAGE_TAGS = {
     messages.DEBUG: "alert-secondary",
@@ -229,5 +229,5 @@ MESSAGE_TAGS = {
     messages.ERROR: "alert-danger",
 }
 
-# ─── DEFAULT AUTO FIELD ─────────────────────────────────────────────────────
+# ─── DEFAULT AUTO FIELD ─────────────────────────────────
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

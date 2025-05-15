@@ -48,21 +48,27 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL,
-        null=True, blank=True, related_name="products"
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="products",
     )
     flavor = models.ForeignKey(
-        Flavor, on_delete=models.SET_NULL,
-        null=True, blank=True, related_name="products"
+        Flavor,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="products",
     )
-    sizes = models.ManyToManyField(
-        Size, blank=True, related_name="products"
-    )
+    sizes = models.ManyToManyField(Size, blank=True, related_name="products")
 
     image = models.ImageField(
-        upload_to="product_images/", blank=True, null=True)
+        upload_to="product_images/", blank=True, null=True
+    )
     allergen_info = models.TextField(
-        blank=True, help_text="E.g., Contains nuts, gluten-free")
+        blank=True, help_text="E.g., Contains nuts, gluten-free"
+    )
     available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -86,8 +92,10 @@ class Product(models.Model):
 
 class Review(models.Model):
     """Customer review and rating for a product."""
+
     product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="reviews")
+        Product, on_delete=models.CASCADE, related_name="reviews"
+    )
     user = models.CharField(max_length=100)
     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
     comment = models.TextField(blank=True)

@@ -14,7 +14,11 @@ class OrderAdmin(admin.ModelAdmin):
     """Custom Admin Panel for Orders."""
 
     list_display = (
-        "order_number", "user", "grand_total", "status", "created_at"
+        "order_number",
+        "user",
+        "grand_total",
+        "status",
+        "created_at",
     )
     list_filter = ("status", "created_at")
     search_fields = ("order_number", "user__username", "email")

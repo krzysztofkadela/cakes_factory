@@ -2,9 +2,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib import messages
-from .forms import UserEditForm
-
-from .forms import CustomUserForm
+from .forms import UserEditForm, CustomUserForm
 from .models import CustomUser
 from orders.models import Order
 from products.models import Product
@@ -35,8 +33,7 @@ def edit_profile(request):
             form.save()
             messages.success(request, "Profile updated successfully!")
             return redirect("user_profile")
-        else:
-            messages.error(request, "Please correct errors below.")
+        messages.error(request, "Please correct errors below.")
     else:
         form = CustomUserForm(instance=request.user)
 
@@ -60,28 +57,33 @@ def manage_users(request):
     users = User.objects.all()
     return render(request, "users/manage_users.html", {"users": users})
 
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def manage_orders(request):
     orders = Order.objects.all().order_by("-created_at")
     return render(request, "users/manage_orders.html", {"orders": orders})
 
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def manage_products(request):
     products = Product.objects.all()
     return render(
-        request, "users/manage_products.html", {"products": products})
+        request, "users/manage_products.html", {"products": products}
+    )
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)  # Restrict access to admins
+@user_passes_test(lambda u: u.is_superuser)
 def manage_subscriptions(request):
     """View all newsletter subscribers."""
     subscribers = NewsletterSubscriber.objects.all().order_by("-subscribed_at")
-    return render(request,
-                  "users/manage_subscriptions.html",
-                  {"subscribers": subscribers})
+    return render(
+        request,
+        "users/manage_subscriptions.html",
+        {"subscribers": subscribers},
+    )
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -91,7 +93,8 @@ def toggle_subscription(request, subscriber_id):
     subscriber.active = not subscriber.active
     subscriber.save()
     messages.success(
-        request, f"Subscription status updated for {subscriber.email}.")
+        request, f"Subscription status updated for {subscriber.email}."
+    )
     return redirect("manage_subscriptions")
 
 
@@ -101,9 +104,9 @@ def delete_subscription(request, subscriber_id):
     subscriber = get_object_or_404(NewsletterSubscriber, id=subscriber_id)
     subscriber.delete()
     messages.success(
-        request, f"Subscriber {subscriber.email} deleted successfully.")
+        request, f"Subscriber {subscriber.email} deleted successfully."
+    )
     return redirect("manage_subscriptions")
-
 
 
 @login_required
@@ -122,11 +125,12 @@ def edit_user(request, user_id):
         if form.is_valid():
             form.save()
             messages.success(request, "User details updated successfully.")
-            return redirect('manage_users')
+            return redirect("manage_users")
     else:
         form = UserEditForm(instance=user)
     return render(
-        request, "users/edit_user.html", {"form": form, "user": user})
+        request, "users/edit_user.html", {"form": form, "user": user}
+    )
 
 
 @login_required
@@ -136,5 +140,5 @@ def delete_user(request, user_id):
     if request.method == "POST":
         user.delete()
         messages.success(request, "User deleted successfully.")
-        return redirect('manage_users')
+        return redirect("manage_users")
     return render(request, "users/confirm_delete_user.html", {"user": user})

@@ -25,23 +25,32 @@ class OrderForm(forms.ModelForm):
         model = Order
         fields = (
             # Shipping fields
-            "full_name", "email", "phone_number",
-            "street_address1", "street_address2",
-            "town_or_city", "county", "postcode", "country",
-
+            "full_name",
+            "email",
+            "phone_number",
+            "street_address1",
+            "street_address2",
+            "town_or_city",
+            "county",
+            "postcode",
+            "country",
             # Delivery date/time
-            "delivery_date", "delivery_time",
-
+            "delivery_date",
+            "delivery_time",
             # Billing fields
-            "billing_full_name", "billing_phone_number",
-            "billing_street_address1", "billing_street_address2",
-            "billing_town_or_city", "billing_county",
-            "billing_postcode", "billing_country",
+            "billing_full_name",
+            "billing_phone_number",
+            "billing_street_address1",
+            "billing_street_address2",
+            "billing_town_or_city",
+            "billing_county",
+            "billing_postcode",
+            "billing_country",
         )
 
     def __init__(self, *args, **kwargs):
         """Customize form fields: placeholders,
-          Bootstrap styling, and date limits.
+        Bootstrap styling, and date limits.
         """
         super().__init__(*args, **kwargs)
 
@@ -58,7 +67,6 @@ class OrderForm(forms.ModelForm):
             "country": "Shipping Country",
             "delivery_date": "Select Delivery or Pickup Date",
             "delivery_time": "Select Preferred Time Slot",
-
             # Billing
             "billing_full_name": "Full Name (Billing)",
             "billing_phone_number": "Phone Number (Billing)",
@@ -75,15 +83,18 @@ class OrderForm(forms.ModelForm):
             if field == "use_same_for_billing":
                 continue
 
-            self.fields[field].widget.attrs.update({
-                "placeholder": placeholders.get(field, ""),
-                "class": "form-control",
-            })
+            self.fields[field].widget.attrs.update(
+                {
+                    "placeholder": placeholders.get(field, ""),
+                    "class": "form-control",
+                }
+            )
             self.fields[field].label = False
 
         # Use a select widget for delivery_time with generated time slots
         self.fields["delivery_time"].widget = forms.Select(
-            choices=self.get_time_slots())
+            choices=self.get_time_slots()
+        )
 
         # Set date picker for delivery_date (today’s date or later)
         today = timezone.localdate()
@@ -106,37 +117,39 @@ class OrderForm(forms.ModelForm):
 
         valid_times = [
             datetime.time(hour, minute).strftime("%H:%M")
-            for hour in range(9, 18) for minute in (0, 30)
+            for hour in range(9, 18)
+            for minute in (0, 30)
         ]
         if delivery_time and delivery_time not in valid_times:
             raise forms.ValidationError(
-                "Please select a valid time slot(9 AM - 6 PM).")
+                "Please select a valid time slot(9 AM - 6 PM)."
+            )
         return delivery_time
 
     def clean(self):
         """If 'use_same_for_billing' is checked,
-          copy shipping fields into billing fields.
+        copy shipping fields into billing fields.
         """
         cleaned_data = super().clean()
         use_same = cleaned_data.get("use_same_for_billing")
 
         if use_same:
-            cleaned_data["billing_full_name"] = cleaned_data.get(
-                "full_name")
+            cleaned_data["billing_full_name"] = cleaned_data.get("full_name")
             cleaned_data["billing_phone_number"] = cleaned_data.get(
-                "phone_number")
+                "phone_number"
+            )
             cleaned_data["billing_street_address1"] = cleaned_data.get(
-                "street_address1")
+                "street_address1"
+            )
             cleaned_data["billing_street_address2"] = cleaned_data.get(
-                "street_address2")
+                "street_address2"
+            )
             cleaned_data["billing_town_or_city"] = cleaned_data.get(
-                "town_or_city")
-            cleaned_data["billing_county"] = cleaned_data.get(
-                "county")
-            cleaned_data["billing_postcode"] = cleaned_data.get(
-                "postcode")
-            cleaned_data["billing_country"] = cleaned_data.get(
-                "country")
+                "town_or_city"
+            )
+            cleaned_data["billing_county"] = cleaned_data.get("county")
+            cleaned_data["billing_postcode"] = cleaned_data.get("postcode")
+            cleaned_data["billing_country"] = cleaned_data.get("country")
 
         return cleaned_data
 
@@ -144,8 +157,11 @@ class OrderForm(forms.ModelForm):
     def get_time_slots():
         """Generate half-hourly time slots from 9 AM to 6 PM."""
         time_slots = [
-            (datetime.time(hour, minute).strftime("%H:%M"),
-             datetime.time(hour, minute).strftime("%I:%M %p"))
-            for hour in range(9, 18) for minute in (0, 30)
+            (
+                datetime.time(hour, minute).strftime("%H:%M"),
+                datetime.time(hour, minute).strftime("%I:%M %p"),
+            )
+            for hour in range(9, 18)
+            for minute in (0, 30)
         ]
         return [("", "Select Time Slot")] + time_slots
