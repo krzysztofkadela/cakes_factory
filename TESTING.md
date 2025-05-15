@@ -120,3 +120,19 @@
 ### Lighthouse Product Details Page:
 
 ![Product](/READMEmedia/lighthouse_product_detail.png)
+
+# Bug detected fix:
+
+## Newsletter & Subscription Bugfix Validation:
+
+- Issue: 500 errors on /newsletter-signup/ and /users/manage/subscriptions/
+- Cause: Missing 'active' field migration for NewsletterSubscriber (Heroku DB out of sync)
+- Fixes:
+  - Applied pending migrations on Heroku
+  - Cleaned up view logic, added @login_required decorators
+  - Confirmed AJAX newsletter signup success response
+  - Confirmed subscription management loads subscribers without errors
+- Commands Used:
+  - `heroku run python manage.py migrate --plan`
+  - `heroku run python manage.py migrate`
+- Status: Fixed and Verified on Heroku production.
