@@ -198,7 +198,9 @@ class OrderItem(models.Model):
 
     @property
     def line_total(self):
-        """Ensure order item total calculation is safe even if price_each is None."""
+        """Ensure order item total calculation
+           is safe even if price_each is None.
+        """
         price = self.price_each or 0
         quantity = self.quantity or 0
         return price * quantity

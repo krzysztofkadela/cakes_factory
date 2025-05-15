@@ -612,7 +612,7 @@ def payment_success(request):
                 order.status = "paid"
                 order.save()
                 print(
-                    f"✅ Order {order_number} marked as PAID (via success page fallback)."
+                    f"Order {order_number} marked as PAID fallback."
                 )
 
                 # Clear cart
@@ -672,8 +672,10 @@ def retry_payment(request, order_number):
                 }
             ],
             metadata={"order_number": order.order_number},
-            success_url=f"{site_url}{reverse('payment_success')}?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{site_url}{reverse('order_detail', args=[order.order_number])}",
+            success_url=f"{site_url}{reverse(
+                'payment_success')}?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{site_url}{reverse(
+                'order_detail', args=[order.order_number])}",
         )
         return redirect(session.url)
     except stripe.error.StripeError as e:
@@ -704,9 +706,12 @@ def stripe_webhook(request):
 
     # Map event types to handler methods
     event_map = {
-        "checkout.session.completed": handler.handle_checkout_session_completed,
-        "payment_intent.succeeded": handler.handle_payment_intent_succeeded,
-        "payment_intent.payment_failed": handler.handle_payment_intent_payment_failed,
+        "checkout.session.completed":
+            handler.handle_checkout_session_completed,
+        "payment_intent.succeeded":
+            handler.handle_payment_intent_succeeded,
+        "payment_intent.payment_failed":
+            handler.handle_payment_intent_payment_failed,
     }
     event_handler = event_map.get(event["type"], handler.handle_event)
     response = event_handler(event)
