@@ -35,14 +35,46 @@
 
 ---
 
-#### Python Code & PEP8 Compliance: 
- * Validated with: flake8 for PEP8 compliance.
- * No major syntax issues found.
- * Ensured:
-  - Proper indentation.
-  - Maximum line length (79 characters).
-  - Removed unused imports.
+### PEP8 & Code Quality Testing
 
+To ensure clean, maintainable, and professional Python code, we used the following tools:
+
+#### Tools Used:
+- `flake8`: Checked for line length, indentation, whitespace, unused variables.
+- `black`: Used optionally for auto-formatting before manual flake8 passes.
+- `ruff`: Used with selected rules for E231, E251, and E712 to catch style violations.
+- VSCode Pylint Extension (for real-time linting assistance).
+
+#### Summary:
+- All files passed `flake8` (max-line-length=79).
+- All major errors and warnings have been addressed.
+- Settings confirmed:
+  - Proper indentation and whitespace
+  - No unused imports
+  - Line length set to 79 characters
+  - Decorator and function spacing validated
+
+##### Before: 
+![Before](/READMEmedia/flack8errors1.png)
+
+---
+
+![Before](/READMEmedia/flack8errors2.png)
+
+---
+
+##### After : 
+![After](/READMEmedia/flack0errors.png)
+
+---
+
+##### setup.cfg :
+
+```
+[flake8]
+max-line-length = 79
+exclude = migrations, __pycache__, manage.py, .vscode/*
+```
 
 ## Manual Testing 
 
@@ -89,8 +121,6 @@
 | **Delete Newsletter Subscriber** | Select a subscriber, click "Delete", confirm deletion. | Subscriber is successfully removed from the newsletter list. | Pass |
 
 ---
-
-## Lighthouse Testing Results
 
 ## Lighthouse Testing Results
 
