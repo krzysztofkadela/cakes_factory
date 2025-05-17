@@ -166,3 +166,57 @@ exclude = migrations, __pycache__, manage.py, .vscode/*
   - `heroku run python manage.py migrate --plan`
   - `heroku run python manage.py migrate`
 - Status: Fixed and Verified on Heroku production.
+
+## Email Sending Validation (SMTP via SendGrid):
+
+We validated production email delivery using SendGrid’s SMTP integration to ensure real transactional emails work in live environments (e.g., signup confirmation, password reset).
+
+SMTP Configuration:
+- Backend: django.core.mail.backends.smtp.EmailBackend
+- Host: smtp.sendgrid.net
+- Port: 587
+- TLS: Enabled
+- Username: apikey
+- Password: (SendGrid API key)
+- Verified Sender Email: cakefactorystore24@gmail.com
+
+Email Test Process:
+
+| Test                   | Description                                                        | Status              |
+| ---------------------- | ------------------------------------------------------------------ | ------------------- |
+| **SMTP Shell Test**    | Sent test email using `send_mail()` from Django shell.             | ✅ Sent successfully |
+| **Verified Sender**    | Used verified sender address (per SendGrid dashboard).             | ✅ Passed            |
+| **Retry & Delivery**   | Verified email received in inbox with correct subject and message. | ✅ Passed            |
+| **SendGrid Dashboard** | Email logged under Activity tab.                                   | ✅ Verified          |
+
+```
+from django.core.mail import send_mail
+
+send_mail(
+    subject="🎂 Cake Factory Email Test",
+    message="✅ Success! Email via SendGrid SMTP 🎉",
+    from_email="cakefactorystore24@gmail.com",
+    recipient_list=["----------------------"],
+    fail_silently=False,
+)
+
+```
+#### Test verifycation img :
+
+##### User Sign Up form : 
+
+![Sign Up Test](/READMEmedia/SignUpteatEmail1.png)
+
+##### Verification Email Sent: 
+
+![Sign Up Test](/READMEmedia/SignUpEmailverification1.png)
+
+##### Email Verified:
+
+![Sign Up Test](/READMEmedia/versignin.png)
+
+##### Login Successful:
+
+![Sign Up Test](/READMEmedia/verisucceslogedin.png)
+
+
