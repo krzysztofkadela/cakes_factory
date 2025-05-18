@@ -220,3 +220,21 @@ send_mail(
 ![Sign Up Test](/READMEmedia/verisucceslogedin.png)
 
 
+## Stripe Checkout & Cart Clearing Bug Fix Validation:
+
+- Issue: After successful Stripe payment, the cart was not cleared, causing confusion for the user.
+
+- Cause: The cart-clearing logic was missing or not executed after payment confirmation.
+
+- Fixes Applied:
+  - Ensured request.session['cart'] = {} is called after successful checkout session completion.
+  - Logic placed in Stripe webhook handler (checkout.session.completed).
+  - Also tested fallback clearing on the success page for extra safety.
+
+- Testing Performed:
+  - Added item to cart (guest and logged-in user)
+  - Completed payment via Stripe
+  - Confirmed cart was cleared immediately after successful payment
+  - Confirmed order details appear in Django Admin > Orders
+  
+- Status: Fixed and verified in development and Heroku production.
